@@ -1,0 +1,31 @@
+;
+;      Example CLAMS database configuration file
+;
+; Edit for your local installation and save as clams.ini
+;
+
+;  Specify the ODBC data source used to connect to the database
+ODBC_Data_Source=AFSC-64
+
+;  Specify the user and user's password used to connect to the database
+User=clamsbase
+Password=
+
+;  Specify the database schema to use - usually the same as the user
+Schema=clamsbase
+
+;  Specify the paths to various application directories
+;  These paths must be defined using FORWARD slashes
+
+
+; ErrorLogDir is where the application error logs are written
+; This is REQUIRED
+ErrorLogDir = ./logs
+
+; LoggingDir, ImageDir, SoundsDir, and IconDir are optional.
+; If they are commented or not provided the equivalent parameters
+; will be used from the workstation_configuration table in clamsbase.
+LoggingDir = ./logs
+ImageDir = ./images
+SoundsDir = ./sounds
+IconDir = ./icons

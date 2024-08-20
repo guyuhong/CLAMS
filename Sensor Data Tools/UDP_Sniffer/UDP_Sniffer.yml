@@ -1,0 +1,39 @@
+
+#  specify the local network interface to use. Set to 0.0.0.0 to listen/transmit on all interfaces
+local_address: 0.0.0.0
+
+#  specify the local port to transmit from
+local_port: 44999
+
+#  specify the destination address - this is the IP where data will be sent in tx mode
+#    Typical addresses:
+#           127.0.0.255              Local loopback - Use for testing on your local machine
+#           192.167.117.255       Dyson science network broadcast address - use when on the DY
+#           161.55.247.X            When you are on the AFSC VPN, you must Tx to your VPN IP (use ipconfig to get IP)
+#dest_address: 192.168.0.155
+dest_address: 161.55.247.29
+
+#  specify the transmit interval in milliseconds. Usually 1000-2000 is reasonable for most testing.
+tx_interval_ms:  1000
+
+#  specify the port and the data to broadcast on that port.  In listen mode,the ports
+#  specified will be opened and monitored. In tx mode, the data mapped to the port
+#  will be transmitted
+ports:
+    45000: 5734.3626,N
+    45001: 15352.8424,W
+    45002: 0.052
+    45003: 243.25
+    45004: 24.5
+    45005: 253.42
+    45006: 3.4
+    45007: 0239.93
+    45008: 215
+    45009: 0239.9
+    45010: 0273
+    45011: 04.4
+    45012: 193.000000
+    45013: 3.8124
+    45014: 31.8155
+    45019: $HEHDT,244.41,T*18
+    45020: $GPRMC,233353.00,A,5734.3624,N,15352.8430,W,0.1,26.0,120324,13.2,E,D*2F
