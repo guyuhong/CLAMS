@@ -23,7 +23,6 @@ import listseldialog
 import netdlg
 import timedlg
 from acquisition.scs import QSCSClient
-from acquisition.network import NetworkSensors
 
 class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
 
@@ -101,6 +100,14 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
         self.yellow.setColor(QPalette.ButtonText,QColor(180, 180, 0))
         self.haulLabel.setText(self.activeEvent)
 
+        #  create an instance of the SCS client
+        self.scsClient = QSCSClient.QSCSClient(str(self.settings[QString('SCSHost')]),
+                str(self.settings[QString('SCSPort')]))
+
+        #  attempt to connect to the SCS server
+        if not self.testing:
+            self.setupSCS()
+
         #  connect signals...
         self.connect(self.gearBox, SIGNAL("activated(int)"), self.getOptions)
         self.connect(self.netDimBtn, SIGNAL("clicked()"), self.getNetDims)
@@ -108,6 +115,8 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
         self.connect(self.stratumBtn, SIGNAL("clicked()"), self.getStratum)
         self.connect(self.commentBtn, SIGNAL("clicked()"), self.getComment)
         self.connect(self.doneBtn, SIGNAL("clicked()"), self.goExit)
+        self.connect(self.scsClient, SIGNAL("SCSGetReceived"), self.writeStream)
+        self.connect(self.scsClient, SIGNAL("SCSError"), self.errorSCS)
         self.connect(self.perfCheckBox, SIGNAL("stateChanged(int)"), self.getFullPerfList)
         #  signals for ABL modified form
         self.connect(self.stnBtn, SIGNAL("clicked()"), self.getStation)
@@ -197,40 +206,6 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
         else:
             self.seaBirdBox.setChecked(False)
 
-        # Set up SCS or network objects
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM " + self.schema + ".application_configuration " +
-                "WHERE parameter='SCSVersion'")
-        if query.first():
-            (val,ok) = query.value(0).toInt()
-            if ok:
-                self.scsVersion = val
-        
-        #  set up SCS
-        if self.scsVersion == 4:
-            #  create an instance of the SCS client
-            self.scsClient = QSCSClient.QSCSClient(str(self.settings[QString('SCSHost')]),
-                    str(self.settings[QString('SCSPort')]))
-
-            #  attempt to connect to the SCS server
-            if not self.testing:
-                #  set the SCS "last write" time used to track SCS logging interval
-                self.lastSCSWriteTime = QDateTime.currentDateTime()
-                self.setupSCS()
-                
-            self.connect(self.scsClient, SIGNAL("SCSGetReceived"), self.writeStream)
-            self.connect(self.scsClient, SIGNAL("SCSError"), self.errorSCS)
-            self.connect(self.scsClient, SIGNAL("SCSSensorDescription"), self.receiveSCSDescriptions)
-        else:
-            self.scsClient = NetworkSensors.NetworkSensors()
-            if not self.testing:
-                #  set the SCS "last write" time used to track SCS logging interval
-                self.lastSCSWriteTime = {}
-                self.setupSCSSensors()
-            
-            self.scsClient.datagramReceived.connect(self.writeStream)
-            self.scsClient.dataTimeout.connect(self.scsTimeout)
-            self.SCSisActive = True
-
 
     def getNetDims(self):
         """
@@ -241,13 +216,6 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
 
         #  display the dialog
         self.netdlg.exec_()
-
-
-    def scsTimeout(self, timeInt):
-        if self.SCSisActive:
-            QMessageBox.warning(self,'SCS warning!', "SCS data has not been updated for "+str(timeInt)+" seconds." +
-                                                                " Entries into each event will be old.  Be careful!")
-        self.SCSisActive = False
 
 
     def reloadData(self):
@@ -941,148 +909,43 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
 
     def stopStream(self):
         self.timer.stop()
-        if self.scsVersion == 4:
-            self.scsClient.disconnect()
+        self.scsClient.disconnect()
 
 
     def setupSCS(self):
-        '''
-        setupSCS starts the process of connecting to SCS and configuring the
-        SCS sensor subscriptions
-        '''
-
-        #  try to connect to the scs server
-        try:
-            #  initiate connection with SCS server
-            self.scsClient.connect()
-        except:
-            self.message.setMessage(self.errorIcons[0],self.errorSounds[0], "Failed to connect to " +
-                "SCS server - check IP and port settings in application configuration!" +
-                "If you continue, there will be NO SCS DATA LOGGED during the event.", 'info')
-            self.message.exec_()
-            return
-
-        #  query the sensor descriptions from database,
-        self.receiveSensorDescriptions()
-
-        #  the rest of the SCS setup is handled in receiveSCSDescriptions
-
-
-    def receiveSCSDescriptions(self, data):
-        '''
-        receiveSCSDescriptions completes the SCS initialization
-        '''
-
-        self.sensorList=[]
-        self.devices=[]
-        self.deviceNames=[]
-        self.measureTypes=[]
-        badSCSDevices = []
-
-        #  we've received the Sensor Description data - get the keys from the dictionary
-        keys = data.keys()
-        self.scsSensorList = []
-        for k in keys:
-            self.scsSensorList.append(k)
-
-        #  now get the list of desired sensors from the database
+        # setup scs sensor list
         query = QtSql.QSqlQuery("SELECT " + self.schema + ".measurement_setup.measurement_type, " + self.schema +
                 ".devices.device_id, " + self.schema + ".devices.device_name, " + self.schema +
                 ".measurement_setup.device_interface FROM " + self.schema + ".measurement_setup, " +
                 self.schema + ".devices " + "WHERE " + self.schema + ".measurement_setup.device_id=" +
                 self.schema + ".devices.device_id AND "+ self.schema + ".measurement_setup.workstation_id=" +
                 self.workStation+" AND " + self.schema + ".measurement_setup.gui_module='TrawlEvent'")
-
-        while query.next():
-            #  get the device name
-            deviceName = str(query.value(2).toString())
-
-            #  store our types, device ids, and names
-            self.measureTypes.append(query.value(0).toString())
-            self.devices.append(query.value(1).toString())
-            self.deviceNames.append(deviceName)
-
-            #  check if this is an SCS device
-            if query.value(3).toString() == 'SCS':
-                #  check if it is available from the server
-                if (deviceName in self.scsSensorList):
-                    #  device is available
-                    self.sensorList.append(deviceName)
-                else:
-                    #  the device specified in the database is NOT available, note it
-                    badSCSDevices.append(deviceName)
-
-        #  report any bad SCS device names
-        if (len(badSCSDevices) > 0):
-            messageText = ('Error connecting one or more SCS devices. The following SCS device(s) do not exist:<br>' +
-                    '     <br>'.join(badSCSDevices) + '<br>Consult with survey and update these sensor names in the DEVICES table.')
-            QMessageBox.warning(self, "WARNING", "<font size = 13>" + messageText)
-
-        #  create the SCS subscriptions
-        self.scsSubscription = self.scsClient.subscribe(self.sensorList, self.SCSPollRate)
-
-
-    def setupSCSSensors(self):
-        """
-        setupSCSSensors completes the SCS installation for SCS 5+, connecting sensors to ports queried from the database
-        """
-
-        print('NUNYA!')
-
-        self.deviceIDs = []
-        self.devicePorts = []
         self.sensorList=[]
         self.devices=[]
         self.deviceNames=[]
         self.measureTypes=[]
-        
-        query_host = QtSql.QSqlQuery("SELECT device_id, parameter_value FROM " + self.schema + ".device_configuration " +
-                " WHERE device_parameter='NetworkPort'")
-        while query_host.next():
-            self.deviceIDs.append(query_host.value(0))
-            self.devicePorts.append(query_host.value(1))
-        
-        #  now get the list of desired sensors from the database
-        sql = ("SELECT " + self.schema + ".measurement_setup.measurement_type, " + self.schema +
-                ".devices.device_id, " + self.schema + ".devices.device_name FROM " + self.schema + ".measurement_setup, " +
-                self.schema + ".devices " + "WHERE " + self.schema + ".measurement_setup.device_id=" +
-                self.schema + ".devices.device_id AND "+ self.schema + ".measurement_setup.workstation_id=" +
-                self.workStation+" AND " + self.schema + ".measurement_setup.device_interface='SCS'")
-        query = QtSql.QSqlQuery(sql)
-        print(sql)
-                        
         while query.next():
-            #  get the device name
-            deviceName = str(query.value(2).toString())
-            print(deviceName)
+            self.measureTypes.append(query.value(0).toString())
+            self.devices.append(query.value(1).toString())
+            self.deviceNames.append(query.value(2).toString())
+            if query.value(3).toString()=='SCS':
+                self.sensorList.append(str(query.value(2).toString()))
 
-            #  store our types, device ids, and names
-            device = query.value(1).toString()
-            if not device in self.deviceIDs:
-                messageText = ('Error connecting SCS device. The following SCS device does not have a port set up:<br>' +
-                    '     <br>'.join(deviceName) + '<br>Consult with survey and update this sensor port in the DEVICE_CONFIGURATION table.')
-                QMessageBox.warning(self, "WARNING", "<font size = 13>" + messageText)
-            else:
-                self.measureTypes.append(query.value(0).toString())
-                self.devices.append(device)
-                self.deviceNames.append(deviceName)
-                
-                self.scsClient.addSensor(deviceName, str(self.settings[QString('SCSHost')]), int(self.devicePorts[self.deviceIDs.index(device)].toString()), 'UDP')
-                self.lastSCSWriteTime[deviceName] = QDateTime.currentDateTime()
+        #  create the SCS subscription
+        self.scsSubscription = self.scsClient.subscribe(self.sensorList, self.SCSPollRate)
+        try:
+            #  initiate connection with SCS server
+            self.scsClient.connect()
+        except:
+            self.message.setMessage(self.errorIcons[0],self.errorSounds[0], "Failed to connect to " +
+                "SCS server - check port settings in application configuration!", 'info')
+            self.message.exec_()
 
 
     def writeStream(self, data):
         """
         writeStream is called when we receive data from the SCS client.
         """
-
-        print(self.displayMeasurements)
-
-        #  update the status bar that SCS is alive
-        if not self.SCSisActive:
-            self.SCSisActive = True
-            QMessageBox.warning(self, 'SCS connected!', "SCS is up and running: Data received again.")
-        self.scsRetries = 0
 
         #  check if we're recording data and return if not
         if not self.recordStream:
@@ -1098,30 +961,23 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
         else:
             wroteToDb = False
             for sensor, value in data.iteritems():
-#                try:
-                #  get the index into the sensor list
-                idx = self.deviceNames.index(sensor)
+                try:
+                    #  get the index into the sensor list
+                    idx = self.deviceNames.index(sensor)
 
-                # get the measurement type
-                measurement = str(self.measureTypes[idx])
+                    # get the measurement type
+                    measurement = self.measureTypes[idx]
 
-                #  get the value
-                val = value['data_value']
+                    #  get the value
+                    val = value['data_value']
 
-                print(measurement, val)
-                
-                #  check that we have data for this sensor
-                if val is None or val.strip() == '':
-                    continue
+                    #  convert Lat/Lon to decimal degrees
+                    if measurement in ['Latitude']:
+                        val = self.convertDegToDecimalLat(val)
+                    if measurement in ['Longitude']:
+                        val = self.convertDegToDecimalLon(val)
 
-                #  convert Lat/Lon to decimal degrees
-                if measurement in ['Latitude']:
-                    val = self.convertDegToDecimalLat(val)
-                if measurement in ['Longitude']:
-                    val = self.convertDegToDecimalLon(val)
-
-                #  check if we need to write this to the database
-                if self.scsVersion == 4:
+                    #  check if we need to write this to the database
                     elapsedSecs = self.lastSCSWriteTime.secsTo(datetime)
                     if (elapsedSecs >= self.SCSLogInterval):
                         #  insert into the database
@@ -1130,37 +986,21 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
                                 "VALUES ("+self.ship+","+self.survey+","+self.activeEvent+"," +
                                 self.devices[idx]+",'"+time+"','"+measurement+"','"+val+"')")
                         wroteToDb = True
-                else:
-                    # For SCS 5, the timer has to be by sensor instead of a blanket timer
-                    elapsedSecs = self.lastSCSWriteTime[sensor].secsTo(datetime)
-                    if (elapsedSecs >= self.SCSLogInterval):
-                        #  insert into the database
-                        QtSql.QSqlQuery("INSERT INTO " + self.schema + ".event_stream_data (ship, survey, " +
-                                "event_id, device_id, time_stamp, measurement_type, measurement_value) "+
-                                "VALUES ("+self.ship+","+self.survey+","+self.activeEvent+"," +
-                                self.devices[idx]+",'"+time+"','"+measurement+"','"+val+"')")
-                        wroteToDb = True
-                # copy  measurements we use for display in the GUI
-                print(measurement, self.displayMeasurements)
-                if measurement in self.displayMeasurements:
-                    print("NANO")
-                    ind = self.displayMeasurements.index(measurement)
-                    print(ind)
-                    print(val)
-                    self.dispVector[ind] = val
-                    print(self.dispVector)
 
-#                except:
-#                    #  this sensor is not in our sensor list so just ignore it.
-#                    #  This shouldn't ever happen though...
-#                    pass
+                    # copy  measurements we use for display in the GUI
+                    if measurement in self.displayMeasurements:
+                        ind = self.displayMeasurements.index(measurement)
+                        self.dispVector[ind] = val
+
+                except:
+                    #  this sensor is not in our sensor list so just ignore it.
+                    #  This shouldn't ever happen though...
+                    pass
 
             #  update the write time if we wrote to the db
             if wroteToDb:
-                if self.scsVersion == 4:
-                    self.lastSCSWriteTime = datetime
-                else:
-                    self.lastSCSWriteTime[sensor] = datetime
+                self.lastSCSWriteTime = datetime
+
 
 
     def getFullPerfList(self):
@@ -1321,37 +1161,22 @@ class FOCITrawlEvent(QDialog, ui_ABLTrawlEvent.Ui_ABLTrawlEvent):
                 return
 
 
-
-    def convertDegToDecimalLat(self, deg):
+    def convertDegToDecimalLat(self,  deg):
 
         try:
-            parts = deg.split(',')
-            if len(parts) > 1:
-                deg = parts[0]
-                h = parts[1].strip().lower()
-            else:
-                deg = parts[0][0:-1]
-                h = parts[0][-1].strip().lower()
-            dec = round(float(deg[0:2]) + float(deg[2:])/60., 4)
-            if h in ['s', 'w']:
+            dec = float(deg[0:2]) + float(deg[2:-1])/60.
+            if deg[-1:] in ['S', 'W']:
                 dec = dec * -1
         except:
             dec=''
         return str(dec)
 
 
-    def convertDegToDecimalLon(self, deg):
+    def convertDegToDecimalLon(self,  deg):
 
         try:
-            parts = deg.split(',')
-            if len(parts) > 1:
-                deg = parts[0]
-                h = parts[1].strip().lower()
-            else:
-                deg = parts[0][0:-1]
-                h = parts[0][-1].strip().lower()
-            dec = round(float(deg[0:3]) + float(deg[3:])/60., 4)
-            if h in ['s', 'w']:
+            dec = float(deg[0:3]) + float(deg[3:-1])/60.
+            if deg[-1:] in ['S', 'W']:
                 dec = dec * -1
         except:
             dec=''

@@ -225,6 +225,9 @@ class CLAMSLength(QDialog, ui_CLAMSLength.Ui_clamsLength):
         else:
              self.picLabel.clear()
 
+        #check for existing records going through length type changed
+        self.lengthTypeChanged()
+
         # reset sex buttons
         if self.maleBtn.isChecked():
             self.maleBtn.setChecked(False)
@@ -236,9 +239,6 @@ class CLAMSLength(QDialog, ui_CLAMSLength.Ui_clamsLength):
             self.unsexBtn.setChecked(False)
             self.unsexBtn.setPalette(self.black)
         self.sex=None
-
-        #check for existing records going through length type changed
-        self.lengthTypeChanged()
 
 
     def getManual(self):

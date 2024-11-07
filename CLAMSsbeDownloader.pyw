@@ -282,13 +282,13 @@ class CLAMSsbeDownloader(QMainWindow, ui_CLAMSsbeDownloader.Ui_sbeDownloader):
             depth = round(self.pressureToDepth(line[2], self.haulLat), 3)
 
             #  insert data into database
-            sql = ("INSERT INTO " + self.schema + ".event_stream_data (ship, survey, event_id, device_id, " +
+            sql = ("INSERT INTO clamsbase2.event_stream_data (ship, survey, event_id, device_id, " +
                     "time_stamp, measurement_type, measurement_value) VALUES (" + self.shipLabel.text() +
                     "," + self.surveyLabel.text() + "," + self.haulLabel.text() + "," + self.device_id +
                     ",TO_TIMESTAMP('" + time + "','MM/DD/YYYY HH24:MI:SS.FF'),'SBETemperature','" +
                     str(line[1]) + "')")
             self.db.dbExec(sql)
-            sql =("INSERT INTO " + self.schema + ".event_stream_data (ship, survey, event_id, device_id, " +
+            sql =("INSERT INTO clamsbase2.event_stream_data (ship, survey, event_id, device_id, " +
                     "time_stamp, measurement_type, measurement_value) VALUES ("+self.shipLabel.text() +
                     "," + self.surveyLabel.text() + "," + self.haulLabel.text() + "," + self.device_id +
                     ",TO_TIMESTAMP('"+time+"','MM/DD/YYYY HH24:MI:SS.FF'),'SBEDepth','"+str(depth)+"')")
@@ -296,7 +296,7 @@ class CLAMSsbeDownloader(QMainWindow, ui_CLAMSsbeDownloader.Ui_sbeDownloader):
 
     #  As of Winter 2016 we are no longer inserting pressure into the event_stream_data table
     #  to minimize the volume of data going into the table.
-    #            sql =("INSERT INTO " + self.schema + ".event_stream_data (ship, survey, event_id, device_id, " +
+    #            sql =("INSERT INTO clamsbase2.event_stream_data (ship, survey, event_id, device_id, " +
     #                    "time_stamp, measurement_type, measurement_value) VALUES (" + self.shipLabel.text() +
     #                    "," + self.surveyLabel.text() + "," + self.haulLabel.text() + "," + self.device_id +
     #                    ",TO_TIMESTAMP('" + time + "','MM/DD/YYYY HH24:MI:SS.FF'),'SBEPressure','" +
@@ -701,58 +701,51 @@ class CLAMSsbeDownloader(QMainWindow, ui_CLAMSsbeDownloader.Ui_sbeDownloader):
                               "' AND event_parameter = 'Haulback'")
         hbTime=query.first()
 
-        #  make sure we have both an EQ and HB
-        if eqTime and hbTime:
+        # Find temperature data between EQ & HB and average
+        query=self.db.dbQuery("Select measurement_value FROM event_stream_data WHERE"+
+                        " time_stamp between to_timestamp('"+eqTime[0]+"','MMDDYYYY HH24:MI:SS.FF3')" +
+                        " and to_timestamp('"+hbTime[0]+"','MMDDYYYY HH24:MI:SS:FF3') AND " +
+                        " device_id=" + self.device_id + " AND measurement_type='SBETemperature'")
+        
+        query_val =query.first()
+        if query_val:
+            cumVal = 0.
+            nVals = 0
+            for val, in query:
+                cumVal = cumVal + float(val)
+                nVals = nVals + 1
+            if nVals > 0:
+                avgTemp = cumVal / nVals
 
-            # Find temperature data between EQ & HB and average
-            query=self.db.dbQuery("Select measurement_value FROM event_stream_data WHERE"+
-                            " time_stamp between to_timestamp('"+eqTime[0]+"','MMDDYYYY HH24:MI:SS.FF3')" +
-                            " and to_timestamp('"+hbTime[0]+"','MMDDYYYY HH24:MI:SS:FF3') AND " +
-                            " device_id=" + self.device_id + " AND measurement_type='SBETemperature'")
-            
-            query_val =query.first()
-            if query_val:
-                cumVal = 0.
-                nVals = 0
-                for val, in query:
-                    cumVal = cumVal + float(val)
-                    nVals = nVals + 1
-                if nVals > 0:
-                    avgTemp = cumVal / nVals
+        # Find depth data between EQ & HB and average
+        query=self.db.dbQuery("Select measurement_value FROM event_stream_data WHERE"+
+                        " time_stamp between to_timestamp('"+eqTime[0]+"','MMDDYYYY HH24:MI:SS.FF3')" +
+                        " and to_timestamp('"+hbTime[0]+"','MMDDYYYY HH24:MI:SS:FF3') AND " +
+                        " device_id=" + self.device_id + " AND measurement_type='SBEDepth'")
 
-            # Find depth data between EQ & HB and average
-            query=self.db.dbQuery("Select measurement_value FROM event_stream_data WHERE"+
-                            " time_stamp between to_timestamp('"+eqTime[0]+"','MMDDYYYY HH24:MI:SS.FF3')" +
-                            " and to_timestamp('"+hbTime[0]+"','MMDDYYYY HH24:MI:SS:FF3') AND " +
-                            " device_id=" + self.device_id + " AND measurement_type='SBEDepth'")
+        if query.first():
+            cumVal = 0.
+            nVals = 0
+            for val, in query:
+                cumVal = cumVal + float(val)
+                nVals = nVals + 1
+            if nVals > 0:
+                avgDepth = cumVal / nVals
 
-            if query.first():
-                cumVal = 0.
-                nVals = 0
-                for val, in query:
-                    cumVal = cumVal + float(val)
-                    nVals = nVals + 1
-                if nVals > 0:
-                    avgDepth = cumVal / nVals
+        # Insert averages into event_data table
+        if str(avgTemp)<>'nan':
+            self.db.dbQuery("INSERT INTO event_data (ship, survey, event_id, partition, " +
+                    "event_parameter, parameter_value) VALUES("+ ship+","+survey+","+haul+",'"+
+                    p+"','" + avgTempParam + "',"+str(avgTemp)+")")
 
-            # Insert averages into event_data table
-            if str(avgTemp)<>'nan':
-                self.db.dbQuery("INSERT INTO event_data (ship, survey, event_id, partition, " +
-                        "event_parameter, parameter_value) VALUES("+ ship+","+survey+","+haul+",'"+
-                        p+"','" + avgTempParam + "',"+str(avgTemp)+")")
-
-                self.db.dbQuery("INSERT INTO event_data (ship, survey, event_id, partition, " +
-                        "event_parameter, parameter_value) VALUES("+ship+","+survey+","+haul+",'"+
-                        p+"','" + avgDepthParam + "',"+str(avgDepth)+")")
-            else:
-                #  unable to calculate averages
-                QMessageBox.warning(self, 'Attention!', "Unable to calculate averages between EQ and " +
-                        "Haulback. Either EQ and HB times are not defined for this event or the timespan " +
-                        "of the SBE data does not overlap with EQ and Haulback. That would be bad...")
+            self.db.dbQuery("INSERT INTO event_data (ship, survey, event_id, partition, " +
+                    "event_parameter, parameter_value) VALUES("+ship+","+survey+","+haul+",'"+
+                    p+"','" + avgDepthParam + "',"+str(avgDepth)+")")
         else:
             #  unable to calculate averages
-            QMessageBox.warning(self, 'Attention!', "This event lacks an EQ and Haulback. SBE data " +
-                    "was downloaded but averages between EQ and Haulback were not computed.")
+            QMessageBox.warning(self, 'Attention!', "Unable to calculate averages between EQ and " +
+                    "Haulback. Either EQ and HB times are not defined for this event or the timespan " +
+                    "of the SBE data does not overlap with EQ and Haulback. That would be bad...")
 
 
     def checkPath(self, path, default):

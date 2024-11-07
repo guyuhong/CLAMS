@@ -1,1 +1,1 @@
-Application sounds (as .wav files) should be in this folder.
+Copy your application sounds here

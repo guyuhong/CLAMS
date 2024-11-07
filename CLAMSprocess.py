@@ -26,7 +26,6 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         # initialize variables
         self.reloadFlag=False
         self.db=parent.db
-        self.schema = parent.schema
         self.survey=parent.survey
         self.ship=parent.ship
         self.activeHaul=parent.activeEvent
@@ -467,15 +466,15 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         for partition in self.partitions:
             query1 = QtSql.QSqlQuery("select parameter_value from event_data where ship = "+self.ship+
                     " and survey = "+self.survey+" and event_id = "+self.activeHaul+" and partition = '"+
-                    partition+"' and event_parameter = 'PartitionWeightType' ")
+                    partition+"' and event_parameter = 'PartitionWeight' ")
             query1.first()
-            if query1.value(0) == "not_subsampled":
+            if query1.value(0) == "TBD":
                 sample_sum = []
                 total_weight = []
                 sample_id = []
                 query2 = QtSql.QSqlQuery("select sample_id from samples where ship = "+self.ship+
                         " and survey = "+self.survey+" and event_id = "+self.activeHaul+" and partition = '"+
-                        partition+"' and sample_type = 'SortingTable'")
+                        partition+"' and sample_type = 'WholeHaul'")
                 query2.first()
                 parent_id_qt = query2.value(0).toInt()
                 parent_id = parent_id_qt[0]
@@ -490,7 +489,6 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                             " and survey = "+self.survey+" and event_id = "+self.activeHaul+
                             " and sample_id ="+str(samples)+ " ")
                     while query4.next():
-                        print(samples, query4.value(0))
                         basket_weight = query4.value(0).toFloat()
                         basket_weights.append(basket_weight[0])
                         #print basket_weights#
@@ -528,7 +526,6 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  open a connection to the db using dbConnection
         dbQueryObj = dbConnection.dbConnection(self.parent().dbName, self.parent().dbUser,
                 self.parent().dbPassword)
-        dbQueryObj.bioSchema = self.schema 
         dbQueryObj.dbOpen()
         
         #  create an instance of clamsbase functions

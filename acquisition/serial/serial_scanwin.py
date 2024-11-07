@@ -241,4 +241,4 @@ if __name__ == '__main__':
     import serial
 
     for port, desc, hwid in sorted(comports()):
-        print("%s: %s [%s]" % (port, desc, hwid))
+        print "%s: %s [%s]" % (port, desc, hwid)

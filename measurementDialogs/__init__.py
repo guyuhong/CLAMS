@@ -23,4 +23,3 @@ from isotopeyesnodlg import IsotopeYesNoDlg
 from scalecarddlg import ScaleCardDlg
 from wfyesnodlg import WFYesNoDlg
 from matseldlgabl import MatSelDlgABL
-from salmoncollectiondlg import SalmonCollectionDlg
