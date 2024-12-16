@@ -6,8 +6,7 @@ Created on Mon Oct 27 12:07:55 2014
 """
 
 import logging
-from PyQt5 import QtCore
-from PyQt5 import QtSql
+from PyQt6 import QtSql
 
 
 class SQLError(Exception):
@@ -108,6 +107,25 @@ class dbQueryResults:
             self.dateFormat = 'MM/dd/yyyy hh:mm:ss'
 
 
+    def convert(self, i):
+
+        if (self.query.isNull(i)):
+            val = None
+        #  handle DateTime conversion explicitly
+        elif (self.columnTypes[i] == 'QDateTime'):
+            val = self.query.value(i).toString(self.dateFormat)
+        #  deal with PyQt4/PyQt5 differences in returning integer values as "floats"
+        elif (self.columnTypes[i] in ['float','double']):
+            if (self.query.value(i).is_integer()):
+                val = str(int(self.query.value(i)))
+            else:
+                val = str(self.query.value(i))
+        else:
+                #  try a direct conversion to python string
+                val = str(self.query.value(i))
+                
+        return val
+
     def __iter__(self):
         return self
 
@@ -116,23 +134,8 @@ class dbQueryResults:
         if self.query.next():
             #  build the list of items to return
             for i in range(self.nColumns):
-                #  NULL values are returned as None
-                if (self.query.isNull(i)):
-                    val = None
-                #  handle DateTime conversion explicitly
-                elif (self.columnTypes[i] == 'DateTime'):
-                    val = self.query.value(i).toString(self.dateFormat)
-                #  deal with PyQt4/PyQt5 differences in returning integer values as "floats"
-                elif (self.columnTypes[i] == 'Double'):
-                    if (self.query.value(i).is_integer()):
-                        val = str(int(self.query.value(i)))
-                    else:
-                        val = str(self.query.value(i))
-                else:
-                        #  try a direct conversion to python string
-                        val = str(self.query.value(i))
+                val = self.convert(i)
                 self.rowList[i] = val
-
             return self.rowList
         else:
             self.rowList = [None] * self.nColumns
@@ -143,14 +146,7 @@ class dbQueryResults:
         if self.query.first():
             #  build the list of items to return
             for i in range(self.nColumns):
-                #  NULL values are returned as None
-                if (self.query.isNull(i)):
-                    val = None
-                #  handle DateTime conversion explicitly
-                elif (self.columnTypes[i] == 'DateTime'):
-                    val = self.query.value(i).toString(self.dateFormat)
-                else:
-                    val = str(self.query.value(i))
+                val = self.convert(i)
                 self.rowList[i] = val
         else:
             #  nothing to return as the query is empty
@@ -158,20 +154,12 @@ class dbQueryResults:
 
         return self.rowList
 
-
     def last(self):
 
         if self.query.last():
             #  build the list of items to return
             for i in range(self.nColumns):
-                #  NULL values are returned as None
-                if (self.query.isNull(i)):
-                    val = None
-                #  handle DateTime conversion explicitly
-                elif (self.columnTypes[i] == 'DateTime'):
-                    val = self.query.value(i).toString(self.dateFormat)
-                else:
-                    val = str(self.query.value(i))
+                val = self.convert(i)
                 self.rowList[i] = val
         else:
             #  nothing to return as the query is empty
@@ -202,12 +190,12 @@ class dbConnection:
                  databases you need to set the isOracle keyword to 'False'
     '''
 
-    def __init__(self, source, username, password, label='db', driver='QODBC3',
+    def __init__(self, source, username, password, label='db', driver='QODBC',
             isOracle=True, hostname=None):
 
 
         #  force isOracle keyword for drivers that are obviously *not* oracle
-        if (driver not in ['QODBC3', 'QODBC', 'QOCI']):
+        if (driver not in ['QODBC', 'QOCI']):
             #  this is for sure not an oracle driver
             isOracle=False
 
@@ -311,7 +299,7 @@ class dbConnection:
         if self.db.isOpen():
             #  set the date and time formats for our connections
             sql = "alter session set NLS_DATE_FORMAT = '" + self.NLS_DATE_FORMAT + "'"
-            query = self.db.exec_(sql)
+            query = self.db.exec(sql)
             error = query.lastError().isValid()
             if (error):
                 #  there was a problem setting the date format - raise an error message
@@ -341,7 +329,7 @@ class dbConnection:
 
         if self.db.isOpen():
             sql="alter session set NLS_TIMESTAMP_FORMAT='" + self.NLS_TIMESTAMP_FORMAT + "'"
-            query = self.db.exec_(sql)
+            query = self.db.exec(sql)
             error = query.lastError().isValid()
             if (error):
                 #  there was a problem setting the timestamp format - raise an error message
@@ -362,7 +350,7 @@ class dbConnection:
         self.logger.setLevel(logging.INFO)
 
         self.handler = logging.handlers.FileHandler(logfile)
-        formatter = logging.Formatter('%(asctime)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s ::: %(message)s')
         self.handler.setFormatter(formatter)
 
         self.logger.addHandler(self.handler)
@@ -464,7 +452,7 @@ class dbConnection:
             ok = preparedQuery.execBatch()
         else:
             #  we were only passed one record's worth of data
-            ok = preparedQuery.exec_()
+            ok = preparedQuery.exec()
 
         #  check if we had a problem
         if (not ok):
@@ -492,7 +480,7 @@ class dbConnection:
             self.setOracleTimestampFormat()
 
         #  check if the driver supports transactions.
-        self.hasTransactions = self.db.driver().hasFeature(QtSql.QSqlDriver.Transactions)
+        self.hasTransactions = self.db.driver().hasFeature(QtSql.QSqlDriver.DriverFeature.Transactions)
 
 
     def dbClose(self):
@@ -550,7 +538,7 @@ class dbConnection:
         if (not dbRecord.isEmpty()):
             for i in range(dbRecord.count()):
                 columns.append(str(dbRecord.fieldName(i)).lower())
-                types.append(self.__getQVariantType(dbRecord.field(i)))
+                types.append(dbRecord.field(i).metaType().name().decode("utf-8") )
 
         if (asDict):
 
@@ -592,7 +580,7 @@ class dbConnection:
             query.setForwardOnly(True)
 
         #  execute the sql
-        ok = query.exec_(sql)
+        ok = query.exec(sql)
 
         #  check if we had a problem
         if (not ok):
@@ -607,42 +595,4 @@ class dbConnection:
 
         return query
 
-
-    def __getQVariantType(self, field):
-        '''
-        __getQVariantType is an internal method that determines the python type from
-        the database column type. These data are stored in the columnTypes property
-        of the dbQueryResults object returned from a query and can be used to cast
-        your data from string to the native type if desired.
-        '''
-
-        f= field.type()
-        if (f == QtCore.QVariant.Int):
-            t = 'Int'
-        elif (f == QtCore.QVariant.Double):
-            t = 'Double'
-        elif (f == QtCore.QVariant.LongLong):
-            t = 'LongLong'
-        elif (f == QtCore.QVariant.Char):
-            t = 'Char'
-        elif (f == QtCore.QVariant.Date):
-            t = 'Date'
-        elif (f == QtCore.QVariant.DateTime):
-            t = 'DateTime'
-        elif (f == QtCore.QVariant.String):
-            t = 'String'
-        elif (f == QtCore.QVariant.Time):
-            t = 'Time'
-        elif (f == QtCore.QVariant.UInt):
-            t = 'UInt'
-        elif (f == QtCore.QVariant.ULongLong):
-            t = 'ULongLong'
-        elif (f == QtCore.QVariant.List):
-            t = 'List'
-        elif (f == QtCore.QVariant.ByteArray):
-            t = 'ByteArray'
-        else:
-            t = 'Unknown'
-
-        return t
 

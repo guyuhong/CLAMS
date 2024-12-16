@@ -80,7 +80,7 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         self.setMinimumSize(window.width(), window.height())
         self.setMaximumSize(window.width(), window.height())
 
-        #  setup reoccuring dialogs
+        #  setup recurring dialogs
         self.numpad = numpad.NumPad(self)
         self.message = messagedlg.MessageDlg(self)
 
@@ -102,6 +102,12 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
                 self.survey + " AND event_id=" + self.activeHaul)
         query.first()
         self.gear=query.value(0).toString()
+
+
+        sql = ("SELECT gear FROM events WHERE SHIP = " + self.ship + "  AND SURVEY = " +
+                self.survey + " AND event_id=" + self.activeHaul)
+        query = self.db.dbQuery(sql)
+        self.gear, = query.first()
 
         #  load and display the gear image (if available)
         pic = QImage()
@@ -225,7 +231,7 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
             self.haulInfoBtns[2][0].hide()
             self.haulInfoBtns[2][1].hide()
             self.haulInfoBtns[2][2].hide()
-            self.haulInfoBtns[2][3].hide()            
+            self.haulInfoBtns[2][3].hide()
             self.groupBox1.setTitle('Flow Meter Start')
             self.groupBox2.setTitle('Flow Meter End')
             #self.partitionLabels[0].setText('Codend')
@@ -282,47 +288,48 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         # haul info data fields
         for i in range(len(self.partitions)):
             for j in range(len(self.parameters)):
-                query = QtSql.QSqlQuery("SELECT * FROM event_data WHERE ship=" + self.ship + " AND survey=" + self.survey +
-                                        " AND event_id=" + self.activeHaul + " AND partition='" + self.partitions[i] +
-                                        "' AND event_parameter='" + self.parameters[j] + "'")
+                sql = ("SELECT * FROM event_data WHERE ship=" + self.ship + " AND survey=" + self.survey +
+                       " AND event_id=" + self.activeHaul + " AND partition='" + self.partitions[i] +
+                       "' AND event_parameter='" + self.parameters[j] + "'")
+                query = self.db.dbQuery(sql)
                 if query.first():
-                    #  There is an exisitng record - update it with new values
-                    query = QtSql.QSqlQuery("UPDATE event_data SET parameter_value='" + self.haulInfoBtns[j][i].text() +
-                                            "' WHERE ship=" + self.ship + " AND survey=" + self.survey + " AND event_id=" +
-                                            self.activeHaul + " AND partition='" + self.partitions[i] +
-                                            "' AND event_parameter='" + self.parameters[j] + "'")
+                    #  There is an existing record - update it with new values
+                    sql = ("UPDATE event_data SET parameter_value='" + self.haulInfoBtns[j][i].text() +
+                        "' WHERE ship=" + self.ship + " AND survey=" + self.survey + " AND event_id=" +
+                        self.activeHaul + " AND partition='" + self.partitions[i] +
+                        "' AND event_parameter='" + self.parameters[j] + "'")
                 else:
                     #  This is a new record - insert it
-                    query = QtSql.QSqlQuery("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
-                                            " parameter_value) VALUES ("+ self.ship + "," + self.survey + "," +
-                                            self.activeHaul + ",'" + self.partitions[i] + "','" + self.parameters[j] +
-                                            "','" + self.haulInfoBtns[j][i].text() + "')")
-                self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss')+ "," + query.lastQuery())
+                    sql = ("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
+                        " parameter_value) VALUES ("+ self.ship + "," + self.survey + "," +
+                        self.activeHaul + ",'" + self.partitions[i] + "','" + self.parameters[j] +
+                        "','" + self.haulInfoBtns[j][i].text() + "')")
+                self.db.dbExec(sql)
 
-        #haul info data for pocketnets (i.e. partitions named like 'pocketnet' or 'pnet')            
+        #haul info data for pocketnets (i.e. partitions named like 'pocketnet' or 'pnet')
         #find  all partitions named like 'pocketnet' or 'pnet'
         query=QtSql.QSqlQuery("SELECT partition FROM GEAR_OPTIONS, EVENTS WHERE GEAR_OPTIONS.GEAR = EVENTS.GEAR and EVENTS.SHIP = "+
                               self.ship + "  AND  " + "EVENTS.SURVEY = " + self.survey + " AND EVENTS.EVENT_ID = " +
                               self.activeHaul + " AND (LOWER(GEAR_OPTIONS.PARTITION) LIKE 'p-net' OR LOWER(GEAR_OPTIONS.PARTITION) LIKE '%pocketnet%')")
-        
-        #if there are pocketnets, get the partition names       
-        if query.first():               
-            
+
+        #if there are pocketnets, get the partition names
+        if query.first():
+
             partition_list = [query.value(0).toString()]
             while query.next():
                 #print(partition_list)
                 partition_list.append(query.value(0).toString())
-                       
+
             for i in range(len(partition_list)):
                 #check if the haul info is already in the database for these partitions (i.e. the haul form has already been opened for this haul); if it has, no need to update the info; otherwise enter info
-                query_if_already_entered = QtSql.QSqlQuery("SELECT event_data.event_parameter FROM event_data WHERE event_data.ship = " + self.ship + "  AND event_data.SURVEY = " + self.survey + 
+                query_if_already_entered = QtSql.QSqlQuery("SELECT event_data.event_parameter FROM event_data WHERE event_data.ship = " + self.ship + "  AND event_data.SURVEY = " + self.survey +
                 " AND event_data.EVENT_ID = " + self.activeHaul + " AND event_data.partition = '" +partition_list[i]+ "' AND event_data.event_parameter = 'PartitionWeight'")
-                
-                #if nothing in database, loop through each pocketnet partition to set PartitionWeightType        
-                if not query_if_already_entered.first():       
-                
+
+                #if nothing in database, loop through each pocketnet partition to set PartitionWeightType
+                if not query_if_already_entered.first():
+
                     query2 = QtSql.QSqlQuery("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter, parameter_value)" +
-                                        " VALUES (" + self.ship+ "," + self.survey + "," + self.activeHaul + ",'" +partition_list[i]+ 
+                                        " VALUES (" + self.ship+ "," + self.survey + "," + self.activeHaul + ",'" +partition_list[i]+
                                         "', 'PartitionWeightType','not_subsampled')")
                     self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss')+ "," + query2.lastQuery())
                     query3 = QtSql.QSqlQuery("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter, parameter_value) VALUES ("+
