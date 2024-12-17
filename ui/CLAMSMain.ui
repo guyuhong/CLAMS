@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1004</width>
-    <height>750</height>
+    <width>850</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -46,14 +46,14 @@
      <widget class="QLabel" name="titleLabel">
       <property name="font">
        <font>
-        <family>Gill Sans MT</family>
+        <family>Arial Black</family>
         <pointsize>48</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
       <property name="text">
-       <string>Title Label</string>
+       <string>CLAMS</string>
       </property>
      </widget>
     </item>
@@ -61,7 +61,7 @@
      <widget class="QLabel" name="subtitleLabel">
       <property name="font">
        <font>
-        <family>Gill Sans MT</family>
+        <family>Arial Black</family>
         <pointsize>24</pointsize>
         <weight>75</weight>
         <italic>false</italic>
@@ -94,7 +94,7 @@
          <widget class="QLabel" name="shipLabel">
           <property name="font">
            <font>
-            <family>Gill Sans MT</family>
+            <family>Arial Black</family>
             <pointsize>28</pointsize>
             <weight>75</weight>
             <italic>false</italic>
@@ -110,7 +110,7 @@
          <widget class="QLabel" name="surveyLabel">
           <property name="font">
            <font>
-            <family>Gill Sans MT</family>
+            <family>Arial Black</family>
             <pointsize>28</pointsize>
             <weight>75</weight>
             <italic>false</italic>
@@ -168,7 +168,10 @@
           </property>
           <property name="font">
            <font>
+            <family>Arial Black</family>
             <pointsize>24</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
@@ -186,7 +189,10 @@
           </property>
           <property name="font">
            <font>
+            <family>Arial Black</family>
             <pointsize>24</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
@@ -204,7 +210,10 @@
           </property>
           <property name="font">
            <font>
+            <family>Arial Black</family>
             <pointsize>24</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
@@ -222,7 +231,10 @@
           </property>
           <property name="font">
            <font>
+            <family>Arial Black</family>
             <pointsize>24</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
@@ -240,7 +252,10 @@
           </property>
           <property name="font">
            <font>
+            <family>Arial Black</family>
             <pointsize>24</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">

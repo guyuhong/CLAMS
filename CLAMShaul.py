@@ -34,7 +34,7 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         if not self.db.isOpen():
             self.db.open()
 
-        #  copy some info from parent for convienience
+        #  copy some info from parent for convenience
         self.workStation=parent.workStation
         self.activeHaul=parent.activeHaul
         self.survey=parent.survey

@@ -273,13 +273,13 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
             #  add the device to the serial monitor
             try:
                 self.serMonitor.addDevice(deviceID, port, baud, parseType, parseExp, parseIndex, cmdPrompt)
-            except Exception, e:
+            except Exception as e:
                 print("ERROR ADDING SERIAL DEVICE:" + str(e) + ":" + str(e.parent))
 
         try:
             #  start the serial monitor
             self.serMonitor.startMonitoring()
-        except Exception, e:
+        except Exception as e:
             #  report Serial port initialization errors
 
             #  first get the human readable device names
@@ -507,17 +507,17 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
 
     def updateCatchSummary(self):
         '''
-        updateCatchSummary updates the catch_summary table with data from this event. Data in catch_summary 
+        updateCatchSummary updates the catch_summary table with data from this event. Data in catch_summary
         are generated outside the database and loaded into the table. These data need to be updated
         whenever the underlying data change. This method does this.
-        
+
         This is awkward because new code we have written use our dbConnection library that sorta pythonifies
         the QtSql interface. CLAMS predates dbQuery and uses "raw" QtSql. Because of this, we're going
         to just create a new dbConnection connection to the database.
         '''
-               
+
         event_id = self.activeHaul
-        
+
         #  set the initial return state
         ok = True
         error_msg = ''
@@ -527,7 +527,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         dbQueryObj = dbConnection.dbConnection(self.parent().dbName, self.parent().dbUser,
                 self.parent().dbPassword)
         dbQueryObj.dbOpen()
-        
+
         #  create an instance of clamsbase functions
         clamsFunctions = Clamsbase2Functions.Clamsbase2Functions(dbQueryObj, self.ship,
                 self.survey)
@@ -542,7 +542,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                 "WHERE ship=" + self.ship + " AND survey=" + self.survey + " AND event_id=" + event_id +
                 " AND sample_type='Species'")
         sampleQuery = dbQueryObj.dbQuery(sql)
-        
+
         for sample_id, parent_sample, partition, species_code, subcategory in sampleQuery:
             #  call the computeCatchSummary method of clamsFunctions to, er compute the
             #  catch summary data.
@@ -555,7 +555,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                 #    vals = [sample id, species code, subcategory, sample id, WeightInHaul,SampledWeight,
                 #            NumberInHaul,SampledNumer,FrequencyExpansion,InMix,WholeHauled]
                 vals = vals[0]
-                
+
                 #  get species name
                 sql = ("SELECT scientific_name, common_name FROM species WHERE species_code=" + species_code)
                 sppQuery = dbQueryObj.dbQuery(sql)
@@ -579,12 +579,12 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                             event_id + ". Error text:" + vals[2]  + vals[1])
                     ok = False
                     break
-                        
+
 #        except Exception, e:
 #            error_msg = ("Unknown error computing catch summary data for event " +
 #                                event_id )
 #            ok = False
-            
+
         return (ok, error_msg)
 
 
@@ -593,7 +593,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         sampleValidation1 performs some basic checks to make sure there aren't any obvious
         errors made during sampling.
         '''
-        
+
         self.returnFlag = False
         #  loop thru the partitions doing common validations on the catch
         for partition in self.partitions:
