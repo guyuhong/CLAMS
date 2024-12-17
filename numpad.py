@@ -8,14 +8,14 @@ specific updates:
 - added some function explanation
 - fixed any PEP8 issues
 - updated the QEvent and Qt referenced to add the enum for pyqt6
-- updated the getDigit function since QString is no longer a think with pyqt6
-- added a main to test if works (commented out)
+- updated the getDigit function since QString is no longer a thing with pyqt6
+- added a main to test if work
 """
 
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QEvent, Qt, QObject
-from ui.xga import ui_NumPad
+from ui import ui_NumPad
 
 
 class NumPad(QDialog, ui_NumPad.Ui_numpad):
@@ -79,12 +79,14 @@ class NumPad(QDialog, ui_NumPad.Ui_numpad):
         else:
             self.dispBox.setText(p + str(s))
 
+
     def Clear(self):
         """
         clears the display (sets it to empty string)
         :return: none
         """
         self.dispBox.setText("")
+
 
     def Enter(self):
         """
@@ -95,6 +97,7 @@ class NumPad(QDialog, ui_NumPad.Ui_numpad):
         self.dispBox.setText("")
         self.accept()
 
+
     def closeEvent(self, event=None):
         """
         sets the result to empty and closes the dialog with reject
@@ -102,6 +105,7 @@ class NumPad(QDialog, ui_NumPad.Ui_numpad):
         :return: self.reject and return
         """
         self.reject()
+
 
     def event(self, event):
         """
@@ -160,13 +164,18 @@ class EnterFilter(QObject):
             return QObject.eventFilter(self, obj, event)
 
 
-"""
+
 if __name__ == "__main__":
+     #  import test specific libraries
+    import sys
+
     #  create an instance of QApplication
-    app = QApplication(argv)
+    app = QApplication(sys.argv)
+
     #  create an instance of the dialog
     form = NumPad()
     form.show()
-    #  and start the application...
+
+    #  and start the application event loop
     app.exec()
-"""
+
