@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>389</width>
-    <height>309</height>
+    <width>404</width>
+    <height>396</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,8 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <family>Arial Black</family>
+       <pointsize>14</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -37,13 +38,16 @@
       <widget class="QPushButton" name="widthBtn">
        <property name="minimumSize">
         <size>
-         <width>165</width>
-         <height>35</height>
+         <width>195</width>
+         <height>50</height>
         </size>
        </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -53,13 +57,27 @@
      </item>
      <item row="0" column="1">
       <widget class="QLabel" name="widthLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="autoFillBackground">
-        <bool>true</bool>
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget {
+    background-color: white;
+}</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
@@ -76,13 +94,16 @@
       <widget class="QPushButton" name="lengthBtn">
        <property name="minimumSize">
         <size>
-         <width>165</width>
-         <height>35</height>
+         <width>195</width>
+         <height>50</height>
         </size>
        </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -92,13 +113,27 @@
      </item>
      <item row="1" column="1">
       <widget class="QLabel" name="lengthLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="autoFillBackground">
-        <bool>true</bool>
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget {
+    background-color: white;
+}</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
@@ -115,13 +150,16 @@
       <widget class="QPushButton" name="depthBtn">
        <property name="minimumSize">
         <size>
-         <width>165</width>
-         <height>35</height>
+         <width>195</width>
+         <height>50</height>
         </size>
        </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -131,13 +169,27 @@
      </item>
      <item row="2" column="1">
       <widget class="QLabel" name="depthLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="autoFillBackground">
-        <bool>true</bool>
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget {
+    background-color: white;
+}</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
@@ -154,13 +206,16 @@
       <widget class="QPushButton" name="densityBtn">
        <property name="minimumSize">
         <size>
-         <width>165</width>
-         <height>35</height>
+         <width>195</width>
+         <height>50</height>
         </size>
        </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -170,13 +225,27 @@
      </item>
      <item row="3" column="1">
       <widget class="QLabel" name="densityLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="autoFillBackground">
-        <bool>true</bool>
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget {
+    background-color: white;
+}</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
@@ -204,13 +273,16 @@
       <widget class="QPushButton" name="compBtn">
        <property name="minimumSize">
         <size>
-         <width>165</width>
-         <height>35</height>
+         <width>195</width>
+         <height>50</height>
         </size>
        </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -220,13 +292,27 @@
      </item>
      <item row="0" column="1">
       <widget class="QLabel" name="haulWtLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>20</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="autoFillBackground">
-        <bool>true</bool>
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget {
+    background-color: white;
+}</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
@@ -245,9 +331,18 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="okBtn">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -257,9 +352,18 @@
      </item>
      <item>
       <widget class="QPushButton" name="cancelBtn">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">

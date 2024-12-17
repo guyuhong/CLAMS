@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>522</width>
-    <height>562</height>
+    <width>517</width>
+    <height>508</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,13 +33,19 @@
     <widget class="QLabel" name="dispBox">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>36</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="autoFillBackground">
-      <bool>true</bool>
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QWidget {
+    background-color: white;
+}</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::WinPanel</enum>
@@ -92,6 +98,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -112,6 +119,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -132,6 +140,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -152,6 +161,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -172,6 +182,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -192,6 +203,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -212,6 +224,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -232,6 +245,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -252,6 +266,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -272,7 +287,10 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>18</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -290,6 +308,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -310,6 +329,7 @@
         </property>
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>23</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -327,7 +347,10 @@
     <widget class="QPushButton" name="pBtnEnt">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>22</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">

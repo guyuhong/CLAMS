@@ -18,11 +18,6 @@ class BinDialog(QDialog, ui_BinDialog.Ui_binDialog):
         self.errorIcons=parent.errorIcons
         self.message=parent.message
 
-        self.widthLabel.palette().setColor(self.widthLabel.backgroundRole(), QColor(255, 255, 255))
-        self.lengthLabel.palette().setColor(self.lengthLabel.backgroundRole(), QColor(255, 255, 255))
-        self.depthLabel.palette().setColor(self.depthLabel.backgroundRole(), QColor(255, 255, 255))
-        self.haulWtLabel.palette().setColor(self.haulWtLabel.backgroundRole(), QColor(255, 255, 255))
-
         #  set some initial state vars to track input
         self.widthFlag=False
         self.lengthFlag=False

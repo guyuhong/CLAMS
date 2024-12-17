@@ -28,9 +28,6 @@ class MessageDlg(QDialog, ui_MessageDlg.Ui_messageDlg):
         #  setup the UI elements
         self.setupUi(self)
 
-        #  set the background color of the message label
-        self.msgLabel.palette().setColor(self.msgLabel.backgroundRole(), QColor(255, 255, 255))
-
         #  connect signals
         self.btn_1.clicked.connect(self.goYes)
         self.btn_2.clicked.connect(self.goNo)

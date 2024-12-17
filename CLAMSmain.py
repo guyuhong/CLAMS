@@ -16,8 +16,9 @@
 """
 .. module:: CLAMSmain
 
-    :synopsis: CLAMSmain is...
-               
+    :synopsis: CLAMSmain presents the main CLAMS application window.
+    It
+
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
 | National Oceanic and Atmospheric Administration (NOAA)
@@ -40,14 +41,15 @@ import os
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
+from PyQt6.QtMultimedia import QSoundEffect
 import messagedlg
 import numpad
-from ui.xga import ui_CLAMSMain
 import CLAMSprocess
 import admindlg
 import utilitiesdlg
 import processdlg
 import EventLauncher
+from ui import ui_CLAMSMain
 
 
 class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
@@ -55,14 +57,14 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
     def __init__(self, dataSource, schema, user, password, app_paths, parent=None):
         #  initialize the superclasses
         super().__init__(parent)
-        
+
         #  set up the UI
         self.setupUi(self)
 
         #  define version
         self.version = "V3.0"
         self.testing = False
-        
+
         #  define defaults
         self.backLogger = None
 
@@ -86,7 +88,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.utilitiesBtn.clicked.connect(self.utilities)
         self.adminBtn.clicked.connect(self.administration)
         self.exitBtn.clicked.connect(self.goExit)
-        
+
         #  set the base directory path - this is the full path to this application
         self.baseDir = reduce(lambda l,r: l + os.path.sep + r,
                 os.path.dirname(os.path.realpath(__file__)).split(os.path.sep))
@@ -115,7 +117,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         a timer so that we can call the main window's close method if we run into
         an error.
         """
-        
+
         #  try to load the background image. This will only work here if ImageDir is
         #  set in the .ini file. We do this so if we have an image, we can display it
         #  here so if the DB connection fails the dialog doesn't look so janky.
@@ -127,7 +129,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                 self.parent.setStyleSheet("QMainWindow::background-image:url(" + imFile + ")")
             except:
                 pass
-        
+
         #  create an instance of our dbConnection
         self.db = dbConnection.dbConnection(self.dbName, self.dbUser,
                 self.dbPassword, label='CLAMS', isOracle=True)
@@ -149,7 +151,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                 ".workstations WHERE hostname ='" + computerName + "'")
         query = self.db.dbQuery(sql)
         self.workStation, = query.first()
-        
+
         if self.workStation is None:
             QMessageBox.critical(self, "ERROR", "<font size = 12> Unable to find this " +
                     "computer name (" + computerName + ") in the workstations table. " +
@@ -194,10 +196,10 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         for parameter, parameter_value in query:
             if parameter not in self.settings:
                 self.settings.update({parameter:parameter_value})
-        
+
         #  query the db for the active survey and update the ship/survey state variables and the GUI
         self.setActiveSurvey()
-        
+
         #  clean up and check our paths
         if self.settings.has_key('ImageDir'):
             self.settings['ImageDir'], exists = self.checkPath(self.settings['ImageDir'], 'images')
@@ -261,7 +263,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.settings['LoggingDir'] = os.path.normpath(self.settings['LoggingDir'])
         if (self.settings['LoggingDir'][-1] != '/') or (self.settings['LoggingDir'][-1] != '\\'):
             self.settings['LoggingDir'] = self.settings['LoggingDir'] + os.sep
-            
+
         #  check if the logging directory exists
         if not QDir().exists(self.settings['LoggingDir']):
             reply = QMessageBox.question(self, "ERROR", "<font size = 12>SQL logging directory not found. " +
@@ -278,7 +280,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         loggerFilename = ('CLAMS_' + QDateTime.currentDateTime().toString('MMddyyyy_hhmmss') +
                 '_SQL_Backup.log')
 
-        #  and enable dbConnection logging 
+        #  and enable dbConnection logging
         self.db.enableLogging(self.settings['LoggingDir'] + loggerFilename)
 
         #  Enable only the appropriate actions for this workstation
@@ -323,11 +325,11 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         query = self.db.dbQuery(sql)
         self.ship, = query.first()
         self.settings['ActiveShip'] = self.ship
-        
+
         #  set the version, survey and ship in the main window
         self.titleLabel.setText("<font color=white>CLAMS &nbsp; " + self.version + " </font>")
         self.subtitleLabel.setText("<font color=white>Catch Logger for Acoustic Midwater Surveys</font>")
-        
+
         #  update the ship name in the GUI
         sql = "SELECT name FROM " + self.schema + ".ships WHERE ship=" + self.ship
         query = self.db.dbQuery(sql)
@@ -349,15 +351,15 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
 
     def processHaul(self):
         """
-          processHaul is the entry point for all biological processing. 
-          
+          processHaul is the entry point for all biological processing.
+
           CLAMS assumes that stations with the haul module enabled will coordinate catch
           processing and so these stations will be presented with the event selection
           dialog when they press the process haul button. The event selected is then set as
           the active event. Other stations will not see the event selection dialog. When
           CLAMSprocess is started on these stations, the active event will be queried from
           the db and used.
-          
+
           IMPORTANT NOTE: CLAMS only queries the active event when the process button is
           pressed. If the haul station starts processing a new event while other stations are
           finishing up the previous event, THE OTHER STATIONS MUST CLOSE THE PROCESS MODULE
@@ -441,12 +443,12 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                         " AND survey="+self.survey + " AND event_id=" + event)
                 query = self.db.dbQuery(sql)
                 gear, = query.first()
-            
+
                 #  determine gear type
                 sql = "SELECT gear_type FROM gear WHERE gear='" + gear + "'"
                 query = self.db.dbQuery(sql)
                 gearType, = query.first()
-                
+
                 #  and finally check if this gear retains catch
                 sql = ("SELECT retains_catch FROM " + self.schema +
                         ".gear_types WHERE gear_type='" + gearType + "'")
@@ -552,14 +554,14 @@ if __name__ == "__main__":
     user = initSettings.value('User', 'NULL')
     password = initSettings.value('Password', 'NULL')
     schema = initSettings.value('Schema', 'NULL')
-    
+
     #  extract the application paths
     app_paths = {}
     app_paths['LoggingDir'] = initSettings.value('LoggingDir', './sql_logs')
     app_paths['ImageDir'] = initSettings.value('ImageDir', './images')
     app_paths['SoundsDir'] = initSettings.value('SoundsDir', './sounds')
     app_paths['IconDir'] = initSettings.value('IconDir', './icons')
-    
+
     #  create an instance of QApplication
     app = QApplication(sys.argv)
 
@@ -571,7 +573,7 @@ if __name__ == "__main__":
     #  wearing gloves
 #    https://doc.qt.io/qt-6/stylesheet-examples.html#customizing-qmainwindow
 #    https://doc.qt.io/qt-6/stylesheet-examples.html
-#    
+#
 #    QScrollBar:vertical {
 #    width: 40px;
 #    height: 20px;

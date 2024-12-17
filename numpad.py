@@ -13,7 +13,6 @@ specific updates:
 """
 
 from PyQt6.QtWidgets import *
-from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QEvent, Qt, QObject
 from ui import ui_NumPad
 
@@ -28,9 +27,6 @@ class NumPad(QDialog, ui_NumPad.Ui_numpad):
 
         #  create the enter key filter
         enterEater = EnterFilter(self.Enter, parent=self)
-
-        #  set the background color of the textbox
-        self.dispBox.palette().setColor(self.dispBox.backgroundRole(), QColor(255, 255, 255))
 
         #  connect the signals and install the event filters on the digit keys
         self.pBtn1.clicked.connect(self.getDigit)
