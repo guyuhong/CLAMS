@@ -3,7 +3,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4 import QtSql
 from ui.xga import ui_CLAMSCatch
-import addcatchspcdlg_multimix
+import addcatchspcdlg
 import numpad
 import typeseldialog
 import basketeditdlg
@@ -190,15 +190,15 @@ class CLAMSCatch(QDialog, ui_CLAMSCatch.Ui_clamsCatch):
         self.connect(self.serMonitor, SIGNAL("SerialDataReceived"), self.getAuto)
         self.connect(self.transBtn, SIGNAL("clicked()"), self.transferSample)
         self.connect(self.commentBtn, SIGNAL("clicked()"), self.getComment)
-        
+
         # set up serial connections
         self.openSerial()
         self.reloadSpeciesList()
-        self.spcDlg = addcatchspcdlg_multimix.AddCatchSpcDlg(self)
+        self.spcDlg = addcatchspcdlg.AddCatchSpcDlg(self)
         self.connect(self.spcDlg, SIGNAL("changed"), self.addSpecies)
 
         self.updateParentKeys()
-        
+
         checkHaulTimer = QTimer(self)
         checkHaulTimer.setSingleShot(True)
         self.connect(checkHaulTimer, SIGNAL("timeout()"), self.checkHaulIsDone)
@@ -285,7 +285,7 @@ class CLAMSCatch(QDialog, ui_CLAMSCatch.Ui_clamsCatch):
 
     def setActiveSpecies(self, spc_name, subcat):
         # this is for programattically setting active species
-        
+
         if subcat=='None':
             spc_tag=spc_name
         else:
@@ -338,12 +338,12 @@ class CLAMSCatch(QDialog, ui_CLAMSCatch.Ui_clamsCatch):
     def getActiveSpc(self):
         self.basketView.setEnabled(True)
         self.sumTable.setEnabled(True)
-        
+
         # default setting for a species is no whole haul
         if self.speciesList.currentRow()<0:# no species left, for deleting purposes
             return
         text=str(self.speciesList.item(self.speciesList.currentRow(), 0).text())
-        
+
         #  check to make sure this sample still exists - stations can get out of sync with the samples
         #  list if someone deletes a sample at a different station after someone opens this form.
         sampID = self.speciesList.verticalHeaderItem(self.speciesList.currentRow()).text()
@@ -351,7 +351,7 @@ class CLAMSCatch(QDialog, ui_CLAMSCatch.Ui_clamsCatch):
         if not ok:
             #  this sample has been deleted - inform the user and remove from the list
             self.message.setMessage(self.errorIcons[2], self.errorSounds[2],
-                        "The sample you selected has been deleted by someone else. " + 
+                        "The sample you selected has been deleted by someone else. " +
                         "You must re-add it using the Catch module if you need it.",'info')
             self.message.exec_()
             #  refresh the species list
@@ -374,7 +374,7 @@ class CLAMSCatch(QDialog, ui_CLAMSCatch.Ui_clamsCatch):
             self.activeSpcName=text1[0]
         self.activeSampleKey=self.speciesList.verticalHeaderItem(self.speciesList.currentRow()).text()
         self.activeSpcCode=self.speciesDict[str(self.activeSpcName)]
-        
+
         # look for previous data on species
         self.updateTables()
         self.focus='speciesList'

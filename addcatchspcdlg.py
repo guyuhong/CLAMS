@@ -2,11 +2,11 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4 import QtSql
-from ui.xga import  ui_AddCatchSpcDlg_alt3
+from ui import  ui_AddCatchSpcDlg
 import listseldialog
 
 
-class AddCatchSpcDlg(QDialog, ui_AddCatchSpcDlg_alt3.Ui_addcatchspcDlg):
+class AddCatchSpcDlg(QDialog, ui_AddCatchSpcDlg.Ui_addcatchspcDlg):
     def __init__(self, parent=None):
         super(AddCatchSpcDlg, self).__init__(parent)
 
