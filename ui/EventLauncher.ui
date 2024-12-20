@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>566</width>
-    <height>551</height>
+    <width>573</width>
+    <height>574</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,8 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>18</pointsize>
+       <family>Arial Black</family>
+       <pointsize>24</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -35,7 +36,10 @@
     <widget class="QPushButton" name="pbEvent1">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -47,7 +51,10 @@
     <widget class="QPushButton" name="pbEvent2">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -59,7 +66,10 @@
     <widget class="QPushButton" name="pbEvent3">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -71,7 +81,10 @@
     <widget class="QPushButton" name="pbEvent4">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -83,7 +96,10 @@
     <widget class="QPushButton" name="pbEvent5">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -95,7 +111,10 @@
     <widget class="QPushButton" name="pbEvent6">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -107,7 +126,10 @@
     <widget class="QPushButton" name="pbEvent7">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -119,7 +141,10 @@
     <widget class="QPushButton" name="pbEvent8">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -129,6 +154,14 @@
    </item>
    <item>
     <spacer name="verticalSpacer">
+     <property name="font">
+      <font>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -144,7 +177,10 @@
     <widget class="QPushButton" name="pbCancel">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">

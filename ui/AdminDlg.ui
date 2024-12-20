@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>437</width>
+    <height>330</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,8 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <family>Arial Black</family>
+       <pointsize>24</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -35,7 +36,10 @@
     <widget class="QPushButton" name="createSurveyBtn">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -47,7 +51,10 @@
     <widget class="QPushButton" name="selectSurveyBtn">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -59,7 +66,10 @@
     <widget class="QPushButton" name="setupBtn">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -69,6 +79,13 @@
    </item>
    <item>
     <spacer name="verticalSpacer">
+     <property name="font">
+      <font>
+       <family>Arial Black</family>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -84,7 +101,10 @@
     <widget class="QPushButton" name="doneBtn">
      <property name="font">
       <font>
-       <pointsize>24</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">

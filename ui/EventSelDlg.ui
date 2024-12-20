@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>543</width>
-    <height>454</height>
+    <width>526</width>
+    <height>474</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,10 @@
       <widget class="QLabel" name="label">
        <property name="font">
         <font>
-         <pointsize>14</pointsize>
+         <family>Arial Black</family>
+         <pointsize>24</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -41,7 +44,10 @@
        </property>
        <property name="font">
         <font>
+         <family>Arial Black</family>
          <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="selectionBehavior">
@@ -93,7 +99,10 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>14</pointsize>
+         <family>Arial Black</family>
+         <pointsize>20</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
@@ -116,7 +125,10 @@
          </property>
          <property name="font">
           <font>
-           <pointsize>14</pointsize>
+           <family>Arial Black</family>
+           <pointsize>20</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
           </font>
          </property>
          <property name="text">
@@ -134,7 +146,10 @@
          </property>
          <property name="font">
           <font>
-           <pointsize>14</pointsize>
+           <family>Arial Black</family>
+           <pointsize>20</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
           </font>
          </property>
          <property name="text">

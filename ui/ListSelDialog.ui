@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>521</height>
+    <width>440</width>
+    <height>518</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,10 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <family>Arial Black</family>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -30,7 +33,10 @@
     <widget class="QListWidget" name="itemList">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>14</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
     </widget>
@@ -48,7 +54,10 @@
        <widget class="QPushButton" name="exitBtn">
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
+          <family>Arial Black</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -60,7 +69,10 @@
        <widget class="QPushButton" name="okBtn">
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
+          <family>Arial Black</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">

@@ -169,7 +169,7 @@
           <property name="font">
            <font>
             <family>Arial Black</family>
-            <pointsize>24</pointsize>
+            <pointsize>20</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -190,7 +190,7 @@
           <property name="font">
            <font>
             <family>Arial Black</family>
-            <pointsize>24</pointsize>
+            <pointsize>20</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -202,6 +202,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="utilitiesBtn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="minimumSize">
            <size>
             <width>250</width>
@@ -211,7 +214,7 @@
           <property name="font">
            <font>
             <family>Arial Black</family>
-            <pointsize>24</pointsize>
+            <pointsize>20</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -232,7 +235,7 @@
           <property name="font">
            <font>
             <family>Arial Black</family>
-            <pointsize>24</pointsize>
+            <pointsize>20</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -253,7 +256,7 @@
           <property name="font">
            <font>
             <family>Arial Black</family>
-            <pointsize>24</pointsize>
+            <pointsize>20</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>

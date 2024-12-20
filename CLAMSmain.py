@@ -17,7 +17,7 @@
 .. module:: CLAMSmain
 
     :synopsis: CLAMSmain presents the main CLAMS application window.
-    It
+    It is the entry point for the CLAMS catch processing application.
 
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
@@ -46,7 +46,7 @@ import messagedlg
 import numpad
 import CLAMSprocess
 import admindlg
-import utilitiesdlg
+#import utilitiesdlg
 import processdlg
 import EventLauncher
 from ui import ui_CLAMSMain
@@ -100,9 +100,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
 
         #  create a single-shot timer that runs the application initialization code
         #  this allows the application to complete the main window init method before
-        #  the rest of the initialization code runs. We do this because we can't
-        #  close the main window (as we would if there was an initialization error)
-        #  from the window's init method.
+        #  the rest of the initialization code runs.
         initTimer = QTimer(self)
         initTimer.setSingleShot(True)
         self.connect(initTimer, SIGNAL("timeout()"), self.applicationInit)
@@ -113,22 +111,33 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         """
         applicationInit creates a connection to the CLAMS database and sets up the
         CLAMS application depending on how the workstation running the application
-        is configured. This method is called only once during QMainWindow::Init via
-        a timer so that we can call the main window's close method if we run into
-        an error.
+        is configured.
         """
+
+        #  In order to make scrolling easier for users using a touchscreen with gloves, CLAMS
+        #  sets the width of the scroll bar about double the standard width. The old method
+        #  using QApplication SetGlobalStrut method is deprecated in Qt 5+ so we need to set the
+        #  width via a stylesheet.
+        #    https://doc.qt.io/qt-6/stylesheet-examples.html#customizing-qmainwindow
+        #    https://doc.qt.io/qt-6/stylesheet-examples.html
+        appStyleSheet = 'QScrollBar:vertical {width: 40px; height: 20px;}\n'
 
         #  try to load the background image. This will only work here if ImageDir is
         #  set in the .ini file. We do this so if we have an image, we can display it
         #  here so if the DB connection fails the dialog doesn't look so janky.
-        # https://forum.qt.io/topic/1378/is-it-possible-to-set-a-background-image-to-a-widget/13
         if QDir().exists(self.settings['ImageDir']):
             try:
+                #  the background image is based on the app version number
                 imFile = (self.settings['ImageDir'] + 'backgrounds' + os.sep +
                         self.version + ".jpg")
-                self.parent.setStyleSheet("QMainWindow::background-image:url(" + imFile + ")")
+                #  add the background image to the style sheet
+                appStyleSheet += "QMainWindow::background-image:url(" + imFile + ")"
             except:
+                #  skip the background image if there is a problem
                 pass
+
+        #  set the main window style sheet
+        self.parent.setStyleSheet(appStyleSheet)
 
         #  create an instance of our dbConnection
         self.db = dbConnection.dbConnection(self.dbName, self.dbUser,
@@ -237,22 +246,29 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
             okIcon = QPixmap.fromImage(dialogImage)
             self.errorIcons = [errorIcon,  msgIcon,  overIcon, okIcon]
 
-        #  load error sounds
+        #  load base sound effects (devices sounds are handled elsewhere)
+        self.errorSounds = []
+        self.startSound = None
+        self.printSound = None
         if not QDir().exists(self.settings['SoundsDir']):
             QMessageBox.warning(self, "ERROR", "<font size = 12>Sound directory not found. " +
                     "CLAMS will operate with generic sounds.")
-            self.errorSounds = []
-            self.startSound = None
-            self.printSound = None
         else:
-            self.errorSounds = [QSound(self.settings['SoundsDir'] + 'Error.wav'),
-                                QSound(self.settings['SoundsDir'] + 'Ding.wav'),
-                                QSound(self.settings['SoundsDir'] + 'Exclamation.wav'),
-                                QSound(self.settings['SoundsDir'] + 'Notify.wav'), ]
+            #  these 4 sounds are used to indicate errors, information, questions and ???
+            errorSoundFiles = ['Error.wav', 'Ding.wav', 'Exclamation.wav', 'Notify.wav']
+            for sound in errorSoundFiles:
+                soundEffect = QSoundEffect()
+                soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + sound))
+                self.errorSounds.append(soundEffect)
 
-            #  load opening and printer sounds
-            self.startSound = QSound(self.settings['SoundsDir'] + 'opening.wav')
-            self.printSound = QSound(self.settings['SoundsDir'] + 'KARATE.wav')
+            #  load the "opening" sound (I think this was an easter egg at some point) and the
+            #  sound made when sending something to the label printer
+            soundEffect = QSoundEffect()
+            soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + 'opening.wav'))
+            self.startSound = soundEffect
+            soundEffect = QSoundEffect()
+            soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + 'KARATE.wav'))
+            self.printSound = soundEffect
 
         #  create instances of some of our common dialogs
         self.message = messagedlg.MessageDlg(self)
@@ -473,7 +489,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                 return
 
         #  create the CLAMSProcess window and display it
-        procWindow = CLAMSprocess.CLAMSProcess(self) # changed
+        procWindow = CLAMSprocess.CLAMSProcess(self)
         procWindow.exec()
 
 
@@ -482,8 +498,9 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         '''
             Display the utilities dialog.
         '''
-        dialog = utilitiesdlg.UtilitiesDlg(self)
-        dialog.exec()
+        #dialog = utilitiesdlg.UtilitiesDlg(self)
+        #dialog.exec()
+        pass
 
 
     def administration(self):
@@ -547,7 +564,7 @@ if __name__ == "__main__":
         iniFile = 'clams.ini'
 
     #  create an instance of QSettings to load fundamental CLAMS settings
-    initSettings = QSettings(iniFile, QSettings.IniFormat)
+    initSettings = QSettings(iniFile, QSettings.Format.IniFormat)
 
     #  extract connection parameters
     dataSource = initSettings.value('ODBC_Data_Source', 'NULL')
@@ -564,23 +581,6 @@ if __name__ == "__main__":
 
     #  create an instance of QApplication
     app = QApplication(sys.argv)
-
-#TODO: THIS NEEDS TO BE UPDATED TO USE A STYLE SHEET AS app.setGlobalStrut()
-#      IS DEPRECATED.
-
-    #  set the minimum GUI element size - We do this to force the scroll bars
-    #  to be 40 pixels wide making them easier to use on a touch screen when
-    #  wearing gloves
-#    https://doc.qt.io/qt-6/stylesheet-examples.html#customizing-qmainwindow
-#    https://doc.qt.io/qt-6/stylesheet-examples.html
-#
-#    QScrollBar:vertical {
-#    width: 40px;
-#    height: 20px;
-#    }
-#    self.setStyleSheet("background-image:url(" + imFile + ")")
-#    self.parent.setStyleSheet("QMainWindow::background-image:url(" + imFile + ")")
-#    app.setGlobalStrut(QSize(40, 20))
 
     #  create an instance of the CLAMS main form
     form = CLAMSMain(dataSource, schema, user, password, app_paths, parent=app)
