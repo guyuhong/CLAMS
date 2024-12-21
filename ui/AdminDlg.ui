@@ -64,6 +64,9 @@
    </item>
    <item>
     <widget class="QPushButton" name="setupBtn">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="font">
       <font>
        <family>Arial Black</family>

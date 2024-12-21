@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>530</width>
-    <height>603</height>
+    <width>653</width>
+    <height>662</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,6 +18,7 @@
     <widget class="QLabel" name="label_12">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>18</pointsize>
        <weight>75</weight>
        <bold>true</bold>
@@ -35,7 +36,10 @@
     <widget class="QFrame" name="frame_2">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>16</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="frameShape">
@@ -52,7 +56,10 @@
        <widget class="QLabel" name="label">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -64,7 +71,10 @@
        <widget class="QComboBox" name="cbShip">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
        </widget>
@@ -73,7 +83,10 @@
        <widget class="QLabel" name="label_10">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -85,7 +98,10 @@
        <widget class="QLineEdit" name="surveyNumEdit">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="toolTip">
@@ -97,7 +113,10 @@
        <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -109,7 +128,10 @@
        <widget class="QLineEdit" name="surveyNameEdit">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
        </widget>
@@ -118,7 +140,10 @@
        <widget class="QLabel" name="label_9">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -130,7 +155,10 @@
        <widget class="QLabel" name="label_3">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -142,7 +170,10 @@
        <widget class="QDateEdit" name="startDateEdit">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
        </widget>
@@ -151,7 +182,10 @@
        <widget class="QLabel" name="label_4">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -163,7 +197,10 @@
        <widget class="QDateEdit" name="endDateEdit">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
        </widget>
@@ -172,7 +209,10 @@
        <widget class="QLabel" name="label_5">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -184,7 +224,10 @@
        <widget class="QLabel" name="label_6">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -196,7 +239,10 @@
        <widget class="QLabel" name="label_8">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -208,7 +254,10 @@
        <widget class="QComboBox" name="cbSeaArea">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="toolTip">
@@ -220,7 +269,10 @@
        <widget class="QLabel" name="label_7">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -232,7 +284,10 @@
        <widget class="QComboBox" name="cbRegion">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="toolTip">
@@ -244,7 +299,10 @@
        <widget class="QLabel" name="label_11">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -256,11 +314,17 @@
        <widget class="QPlainTextEdit" name="abstractEdit">
         <property name="font">
          <font>
-          <pointsize>16</pointsize>
+          <family>Arial Black</family>
+          <pointsize>12</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The description of the survey. This is used as the survey description in the metadata export. Often it is completed post survey.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="plainText">
+         <string/>
         </property>
        </widget>
       </item>
@@ -268,7 +332,10 @@
        <widget class="QComboBox" name="cbChiefSci">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
        </widget>
@@ -277,7 +344,10 @@
        <widget class="QComboBox" name="cbEndPort">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
        </widget>
@@ -286,7 +356,10 @@
        <widget class="QComboBox" name="cbStartPort">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
        </widget>
@@ -298,7 +371,10 @@
     <spacer name="verticalSpacer">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>16</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="orientation">
@@ -316,7 +392,10 @@
     <widget class="QFrame" name="frame">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>16</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="frameShape">
@@ -330,7 +409,10 @@
        <spacer name="horizontalSpacer">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="orientation">
@@ -348,7 +430,10 @@
        <widget class="QPushButton" name="createBtn">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -360,7 +445,10 @@
        <widget class="QPushButton" name="cancelBtn">
         <property name="font">
          <font>
+          <family>Arial Black</family>
           <pointsize>16</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">

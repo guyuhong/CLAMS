@@ -1,8 +1,47 @@
+# coding=utf-8
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4 import QtSql
-from ui.xga import ui_NewSurveyDlg
+#     National Oceanic and Atmospheric Administration (NOAA)
+#     Alaskan Fisheries Science Center (AFSC)
+#     Resource Assessment and Conservation Engineering (RACE)
+#     Midwater Assessment and Conservation Engineering (MACE)
+
+#  THIS SOFTWARE AND ITS DOCUMENTATION ARE CONSIDERED TO BE IN THE PUBLIC DOMAIN
+#  AND THUS ARE AVAILABLE FOR UNRESTRICTED PUBLIC USE. THEY ARE FURNISHED "AS
+#  IS."  THE AUTHORS, THE UNITED STATES GOVERNMENT, ITS INSTRUMENTALITIES,
+#  OFFICERS, EMPLOYEES, AND AGENTS MAKE NO WARRANTY, EXPRESS OR IMPLIED,
+#  AS TO THE USEFULNESS OF THE SOFTWARE AND DOCUMENTATION FOR ANY PURPOSE.
+#  THEY ASSUME NO RESPONSIBILITY (1) FOR THE USE OF THE SOFTWARE AND
+#  DOCUMENTATION; OR (2) TO PROVIDE TECHNICAL SUPPORT TO USERS.
+
+"""
+.. module:: newSurveyDlg
+
+    :synopsis: newSurveyDlg is presented when the user clicks on
+               "Create Survey" in the administration dialog. It
+               is used to create new surveys in the CLAMS database.
+
+
+| Developed by:  Rick Towler   <rick.towler@noaa.gov>
+|                Kresimir Williams   <kresimir.williams@noaa.gov>
+| National Oceanic and Atmospheric Administration (NOAA)
+| National Marine Fisheries Service (NMFS)
+| Alaska Fisheries Science Center (AFSC)
+| Midwater Assesment and Conservation Engineering Group (MACE)
+|
+| Author:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+| Maintained by:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+|       Mike Levine   <mike.levine@noaa.gov>
+|       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
+"""
+
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
+from ui import ui_NewSurveyDlg
 
 
 class newSurveyDlg(QDialog, ui_NewSurveyDlg.Ui_newSurveyDlg):
@@ -11,58 +50,64 @@ class newSurveyDlg(QDialog, ui_NewSurveyDlg.Ui_newSurveyDlg):
         self.setupUi(self)
 
         #  set up the GUI
-        self.surveyNumEdit.setInputMask(QString("999990"))
+        self.surveyNumEdit.setInputMask("999990")
         self.startDateEdit.setDate(QDate.currentDate())
         self.startDateEdit.setCalendarPopup(True)
         self.endDateEdit.setDate(QDate.currentDate())
         self.endDateEdit.setCalendarPopup(True)
-        self.connect(self.createBtn, SIGNAL("clicked()"), self.createSurvey)
-        self.connect(self.cancelBtn, SIGNAL("clicked()"), self.cancelClicked)
+
+        self.createBtn.clicked.connect(self.createSurvey)
+        self.cancelBtn.clicked.connect(self.cancelClicked)
 
         self.db=db
         self.shipNumbers = []
 
-        if not self.db.isOpen():
-            self.db.open()
+        #  populate the combo boxes
 
         #  get the list of ships from the database
-        query = QtSql.QSqlQuery("SELECT ship, name FROM ships WHERE active=1", self.db)
-        while query.next():
-            self.shipNumbers.append(query.value(0).toString())
-            self.cbShip.addItem(query.value(1).toString())
+        sql = ("SELECT ship, name FROM ships WHERE active=1", self.db)
+        query = self.db.dbQuery(sql)
+        for ship, name in query:
+            self.shipNumbers.append(ship)
+            self.cbShip.addItem(name)
 
         #  get the list of personnel from the database
-        query = QtSql.QSqlQuery("SELECT scientist FROM personnel", self.db)
-        while query.next():
-            self.cbChiefSci.addItem(query.value(0).toString())
+        sql = ("SELECT scientist FROM personnel", self.db)
+        query = self.db.dbQuery(sql)
+        for sciFi, in query:
+            self.cbChiefSci.addItem(sciFi)
 
         #  get the list of sea areas from the database
-        query = QtSql.QSqlQuery("SELECT iho_sea_area FROM survey_sea_areas", self.db)
-        while query.next():
-            self.cbSeaArea.addItem(query.value(0).toString())
+        sql = ("SELECT iho_sea_area FROM survey_sea_areas", self.db)
+        query = self.db.dbQuery(sql)
+        for iho_sea_area, in query:
+            self.cbSeaArea.addItem(iho_sea_area)
 
         #  get the list of regions from the database
-        query = QtSql.QSqlQuery("SELECT region FROM survey_regions", self.db)
-        while query.next():
-            self.cbRegion.addItem(query.value(0).toString())
+        sql = ("SELECT region FROM survey_regions", self.db)
+        query = self.db.dbQuery(sql)
+        for region, in query:
+            self.cbRegion.addItem(region)
 
         #  get the list of regions from the database
-        query = QtSql.QSqlQuery("SELECT port FROM survey_ports WHERE active=1", self.db)
-        while query.next():
-            self.cbStartPort.addItem(query.value(0).toString())
-            self.cbEndPort.addItem(query.value(0).toString())
+        sql = ("SELECT port FROM survey_ports WHERE active=1", self.db)
+        query = self.db.dbQuery(sql)
+        for port, in query:
+            self.cbStartPort.addItem(port)
+            self.cbEndPort.addItem(port)
 
 
     def createSurvey(self):
 
         #  make sure the dates are sane
         if (self.endDateEdit.date() < self.startDateEdit.date()):
-            QMessageBox.critical(self, "ERROR", "<font size = 12> The start date is later than the end date. Please fix.")
+            QMessageBox.critical(self, "ERROR", "<font size = 12> " +
+                    "The start date is later than the end date. Please fix.")
             return
 
         #  scrub quotes from our free form strings
-        abstract = str(self.abstractEdit.toPlainText()).replace("'",'"')
-        surveyName = str(self.surveyNameEdit.text()).replace("'",'"')
+        abstract = self.abstractEdit.toPlainText().replace("'",'"')
+        surveyName = self.surveyNameEdit.text().replace("'",'"')
 
         #  extract some of our params
         ship = self.shipNumbers[self.cbShip.currentIndex()]
@@ -71,31 +116,34 @@ class newSurveyDlg(QDialog, ui_NewSurveyDlg.Ui_newSurveyDlg):
         endDate = QDate(self.endDateEdit.date())
 
         # check that survey doesn't exist
-        query = QtSql.QSqlQuery("SELECT survey FROM surveys WHERE ship=" + ship+ " AND survey=" +
-                surveyNumber,  self.db)
+        sql = ("SELECT survey FROM surveys WHERE ship=" + ship+ " AND survey=" +
+                surveyNumber)
+        query = self.db.dbQuery(sql)
         if query.first():
-            QMessageBox.critical(self, 'Error', 'Error creating survey. Survey already exists in the database.')
+            QMessageBox.critical(self, 'Error', "Error creating survey. " +
+                    "Survey already exists in the database.")
             return
 
         #  insert the new survey
-        query = QtSql.QSqlQuery("INSERT INTO surveys (survey,ship,name,chief_scientist,start_date,end_date," +
-                "start_port,end_port,sea_area,abstract,region) VALUES ("+ surveyNumber + "," + ship + ",'" +
-                surveyName + "','" + self.cbChiefSci.currentText() + "',TO_DATE('" +
-                startDate.toString('MM/dd/yyyy')+"','MM/DD/YYYY')," + "TO_DATE('" + endDate.toString('MM/dd/yyyy') +
-                "','MM/DD/YYYY'),'" + self.cbStartPort.currentText() + "','" + self.cbEndPort.currentText() +
-                "','" + self.cbSeaArea.currentText()+"','" + abstract+ "','" +
-                self.cbRegion.currentText() + "')", self.db)
+        try:
+            sql = ("INSERT INTO surveys (survey,ship,name,chief_scientist,start_date,end_date," +
+                    "start_port,end_port,sea_area,abstract,region) VALUES ("+ surveyNumber + "," +
+                    ship + ",'" + surveyName + "','" + self.cbChiefSci.currentText() + "',TO_DATE('" +
+                    startDate.toString('MM/dd/yyyy')+"','MM/DD/YYYY')," + "TO_DATE('" +
+                    endDate.toString('MM/dd/yyyy') + "','MM/DD/YYYY'),'" + self.cbStartPort.currentText() +
+                    "','" + self.cbEndPort.currentText() + "','" + self.cbSeaArea.currentText() +
+                    "','" + abstract+ "','" + self.cbRegion.currentText() + "')")
+            self.db.dbExec(sql)
 
-        # check that it was successful
-        query = QtSql.QSqlQuery("SELECT survey FROM surveys WHERE ship=" + ship+ " AND survey=" +
-                surveyNumber,  self.db)
-        if not query.first():
-            QMessageBox.critical(self, 'Error', 'Error creating survey. ' + str(query.lastError().text()))
+        except exception as e:
+            #  there was a problem creating the survey
+            QMessageBox.critical(self, 'Error', 'Error creating survey. ' + str(e))
             return
 
-        else:
-            QMessageBox.information(self, 'Success', 'Survey created successfully. Remeber to set it as ' +
-                    'the active survey if that is your intention.')
+
+        #  success!
+        QMessageBox.information(self, 'Success', "Survey created successfully. " +
+                "Remember to set it as the active survey if that is your intention.")
         self.accept()
 
 

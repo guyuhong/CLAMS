@@ -18,7 +18,8 @@
     <widget class="QGroupBox" name="groupBox">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <family>Arial Black</family>
+       <pointsize>18</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -37,9 +38,10 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <family>Arial Black</family>
+          <pointsize>18</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -55,6 +57,14 @@
       </item>
       <item>
        <spacer name="verticalSpacer">
+        <property name="font">
+         <font>
+          <family>Arial Black</family>
+          <pointsize>12</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
@@ -76,9 +86,10 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <family>Arial Black</family>
+          <pointsize>18</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -102,9 +113,10 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <family>Arial Black</family>
+          <pointsize>18</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -128,9 +140,10 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <family>Arial Black</family>
+          <pointsize>18</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -154,9 +167,10 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <family>Arial Black</family>
+          <pointsize>18</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">

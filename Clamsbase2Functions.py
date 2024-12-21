@@ -1,8 +1,8 @@
 
 from math import *
 from numpy import *
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 import traceback,  sys
 
 
@@ -14,7 +14,7 @@ class Clamsbase2Functions(object):
         self.db=db
         self.progress=progressDlg
         self.oldway_mix=False
-        
+
         #  make sure we have the bioschema attribute
         if not hasattr(self.db, 'bioSchema'):
             self.db.bioSchema = 'clamsbase2'
@@ -41,7 +41,7 @@ class Clamsbase2Functions(object):
             wholehaul_id = None
 
             #  if we have a value this is a catch retaining event
-            if (parameter_value <> None):
+            if parameter_value is not None:
 
                 query2 = self.db.dbQuery("SELECT sample_id, parent_sample FROM "+self.db.bioSchema+".samples WHERE ship=" +
                         self.ship+ " AND survey="+self.survey+" AND event_id="+haul+" AND species_code=100001 AND partition='"+
@@ -56,7 +56,7 @@ class Clamsbase2Functions(object):
                 weighttype = sortquery.first()[0]
 
                  # if the weight type is load cell...
-                if weighttype <> 'not_subsampled':
+                if weighttype.lower() != 'not_subsampled':
                     # get total sample table weight
                     query3 = self.db.dbQuery("SELECT sample_id FROM "+self.db.bioSchema+".samples WHERE ship="+self.ship+
                             " AND survey="+self.survey+" AND event_id="+haul+ " AND partition = '"+partition+
@@ -92,7 +92,7 @@ class Clamsbase2Functions(object):
             query2 = self.db.dbQuery("SELECT sample_id, parent_sample FROM "+self.db.bioSchema+".samples WHERE ship="+self.ship+" AND survey="+
             self.survey+" AND event_id="+haul+" AND species_code=100002 AND partition='"+partition+"'")# the traditional mix
             mix1_id,  parent_id =  query2.first()
-            if mix1_id<>None:
+            if mix1_id is not None:
                 if self.oldway_mix:
                     query5 = self.db.dbQuery("SELECT sum(a.weight) FROM "+self.db.bioSchema+".baskets a, "+self.db.bioSchema+".samples b WHERE "+
                     "a.ship=b.ship AND a.survey=b.survey AND a.event_id=b.event_id AND a.sample_id=b.sample_id AND "+
@@ -134,7 +134,7 @@ class Clamsbase2Functions(object):
             query2 = self.db.dbQuery("SELECT sample_id, parent_sample FROM "+self.db.bioSchema+".samples WHERE ship="+self.ship+" AND survey="+
             self.survey+" AND event_id="+haul+" AND species_code=100004 AND partition='"+partition+"'")# the traditional mix
             mix2_id,  parent_id =  query2.first()
-            if mix2_id<>None:
+            if mix2_id is not None:
                 query5 = self.db.dbQuery("SELECT sum(weight) FROM "+self.db.bioSchema+".baskets WHERE ship="+self.ship+" AND survey="+self.survey+
                 " AND event_id="+haul+" AND basket_type='Measure' AND sample_id="+mix2_id)
                 mixsubwt=float(query5.first()[0])
@@ -150,7 +150,7 @@ class Clamsbase2Functions(object):
             self.survey+" AND event_id="+haul+" AND species_code=100003 AND partition='"+partition+"'")# the traditional mix
             submix1_id,  parent_id =  query2.first()# parent should be mix1
 
-            if submix1_id<>None:
+            if submix1_id is not None:
                 if not parent_id == mix1_id:
                     print("this is baloney!")
                 query5 = self.db.dbQuery("SELECT sum(weight) FROM "+self.db.bioSchema+".baskets WHERE ship="+self.ship+" AND survey="+self.survey+
@@ -621,7 +621,7 @@ class Clamsbase2Functions(object):
                             self.ship+" AND survey="+self.survey+" AND measurement_type='age' "+
                             "AND specimen_id="+specimen_id)
                     val=query1.first()[0]
-                    if val<>None:
+                    if val is not None:
                         self.db.dbExec("UPDATE "+self.db.bioSchema+".measurements SET measurement_value='"+
                                 str(ageDict[measurement_value]) + "' WHERE ship="+self.ship +
                                 " AND survey="+self.survey+" AND measurement_type='age' "+ "AND specimen_id="+

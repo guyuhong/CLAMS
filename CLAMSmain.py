@@ -583,7 +583,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     #  create an instance of the CLAMS main form
-    form = CLAMSMain(dataSource, schema, user, password, app_paths, parent=app)
+    form = CLAMSMain(dataSource, schema, user, password, app_paths)
 
     #  show it
     form.show()

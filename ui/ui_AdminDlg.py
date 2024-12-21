@@ -44,6 +44,7 @@ class Ui_admindlg(object):
         self.selectSurveyBtn.setObjectName("selectSurveyBtn")
         self.verticalLayout.addWidget(self.selectSurveyBtn)
         self.setupBtn = QtWidgets.QPushButton(parent=admindlg)
+        self.setupBtn.setEnabled(False)
         font = QtGui.QFont()
         font.setFamily("Arial Black")
         font.setPointSize(20)
