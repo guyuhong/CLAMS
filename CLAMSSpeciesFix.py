@@ -1,8 +1,10 @@
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4 import QtSql
-from ui.xga import  ui_CLAMSSpeciesFix
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6 import QtSql
+from PyQt6.QtWidgets import *
+
+from ui import  ui_CLAMSSpeciesFix
 import numpad
 
 import messagedlg
@@ -31,7 +33,7 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
         self.message=messagedlg.MessageDlg(self)
 
         # figure out if this is administrative station
-        actions = str(self.settings[QString('MainActions')] )
+        actions = str(self.settings['MainActions'] )
         actions = actions.split(',')
         if 'Administration' in actions:
             self.admin=True
@@ -40,7 +42,7 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
 
 
         # populate species window
-        query=QtSql.QSqlQuery("SELECT species.common_name,species.scientific_name,samples.species_code," +
+        sql = ("SELECT species.common_name,species.scientific_name,samples.species_code," +
                 "samples.sample_id,  samples.subcategory FROM species, samples, baskets "+
                 "WHERE species.species_code = samples.species_code AND samples.ship = baskets.ship "+
                 "AND samples.event_id = baskets.event_id AND samples.survey = baskets.survey "+
@@ -49,12 +51,14 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
                 self.activePartition+"' AND baskets.basket_type='Measure' AND samples.species_code<>0 " +
                 "GROUP BY species.common_name, samples.species_code, species.scientific_name, " +
                 "samples.sample_id,  samples.subcategory",  self.db)
+        query = self.db.dbQuery(sql)
+
         self.sampleDict={}
         self.oldSampleDict={}
         self.speciesCodes=[]
         self.selectionList = []
         while query.next():
-            if query.value(4).toString()<>'None':
+            if query.value(4).toString() is not 'None':
                 species_tag=query.value(0).toString()+'-'+query.value(4).toString()
             else:
                 species_tag=query.value(0).toString()
@@ -85,14 +89,14 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
         self.setMaximumSize(window.width(), window.height())
 
         # general slots
-        self.connect(self.doneBtn, SIGNAL("clicked()"), self.goExit)
-        self.connect(self.startIDBtn, SIGNAL("clicked()"), self.getIDRange)
-        self.connect(self.clearBtn, SIGNAL("clicked()"), self.clearFilters)
-        self.connect(self.endIDBtn, SIGNAL("clicked()"), self.getIDRange)
-        self.connect(self.applyChangeBtn, SIGNAL("clicked()"), self.applyChange)
-        self.connect(self.scientistBox, SIGNAL("activated(int)"), self.filterMeasurements)
-        self.connect(self.workstationBox, SIGNAL("activated(int)"), self.filterMeasurements)
-        self.connect(self.speciesBox, SIGNAL("activated(int)"), self.filterMeasurements)
+        self.doneBtn.clicked.connect(self.goExit)
+        self.startIDBtn.clicked.connect(self.getIDRange)
+        self.clearBtn.clicked.connect(self.clearFilters)
+        self.endIDBtn.clicked.connect(self.getIDRange)
+        self.applyChangeBtn.clicked.connect(self.applyChange)
+        self.scientistBox.clicked.connect(self.filterMeasurements)
+        self.workstationBox.clicked.connect(self.filterMeasurements)
+        self.speciesBox.clicked.connect(self.filterMeasurements)
 
         self.scientistBox.setCurrentIndex(-1)
         self.workstationBox.setCurrentIndex(-1)
@@ -107,7 +111,7 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
         #  from the window's init method.
         initTimer = QTimer(self)
         initTimer.setSingleShot(True)
-        self.connect(initTimer, SIGNAL("timeout()"), self.formInit)
+        self.initTimer.clicked.connect(self.formInit)
         initTimer.start(0)
 
     def clearFilters(self):
@@ -202,29 +206,32 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
     def populateFilters(self):
         if self.scientistBox.currentIndex() ==-1:
             self.scientistBox.clear()
-            query=QtSql.QSqlQuery("SELECT scientist FROM V_SPECIMEN_MEASUREMENTS WHERE " +
+            sql = ("SELECT scientist FROM V_SPECIMEN_MEASUREMENTS WHERE " +
                                 " ship=" + self.ship +" AND survey=" + self.survey + " AND haul=" + self.activeHaul +
                                 " AND partition='" + self.activePartition + "' "+self.filterString+" GROUP BY scientist ORDER BY scientist")
+            query = self.db.dbQuery(sql)
             while query.next():
                 self.scientistBox.addItem(query.value(0).toString())
             self.scientistBox.setCurrentIndex(-1)
 
         if self.workstationBox.currentIndex() ==-1:
             self.workstationBox.clear()
-            query=QtSql.QSqlQuery("SELECT workstation_ID FROM V_SPECIMEN_MEASUREMENTS WHERE " +
+            sql = ("SELECT workstation_ID FROM V_SPECIMEN_MEASUREMENTS WHERE " +
                                 " ship=" + self.ship +" AND survey=" + self.survey + " AND haul=" + self.activeHaul +
                                 " AND partition='" + self.activePartition + "' "+self.filterString+" GROUP BY workstation_ID ORDER BY workstation_ID")
+            query = self.db.dbQuery(sql)
             while query.next():
                 self.workstationBox.addItem(query.value(0).toString())
             self.workstationBox.setCurrentIndex(-1)
 
         if self.speciesBox.currentIndex() ==-1:
             self.speciesBox.clear()
-            query=QtSql.QSqlQuery("SELECT species_code, common_name, subcategory, sample_id FROM V_SPECIMEN_MEASUREMENTS WHERE " +
+            sql = ("SELECT species_code, common_name, subcategory, sample_id FROM V_SPECIMEN_MEASUREMENTS WHERE " +
                                 " ship=" + self.ship + " AND survey=" + self.survey + " AND haul=" + self.activeHaul +
                                 " AND partition='" + self.activePartition + "' "+self.filterString+" GROUP BY species_code, common_name, subcategory, sample_id ORDER BY species_code")
+            query = self.db.dbQuery(sql)
             while query.next():
-                if query.value(2).toString()<>'None':
+                if query.value(2).toString() is not 'None':
                     species_tag=query.value(1).toString()+'-'+query.value(2).toString()
                 else:
                     species_tag=query.value(1).toString()
@@ -245,34 +252,39 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
 
                 #  disable the MEASUREMENT_SPECIMEN_FK constraint so we can modify the measurements and specimen tables
                 #  without violating this constraint.
-                query = QtSql.QSqlQuery("ALTER TABLE measurements DISABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                sql = ("ALTER TABLE measurements DISABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                query = self.db.dbQuery(sql)
                 if (query.lastError().isValid()):
                     QMessageBox.critical(self, 'Error', 'Unable to change species assignment. Cannot disable constraint.')
                     self.db.rollback()
                     return
 
                 for specimen_id in range(int(self.startIDLabel.text()), int(self.endIDLabel.text())+1):
-                    query =QtSql.QSqlQuery("SELECT * FROM specimen WHERE specimen_id = "+ str(specimen_id)+
+                    sql = ("SELECT * FROM specimen WHERE specimen_id = "+ str(specimen_id)+
                             " AND ship=" + self.ship +" AND survey=" + self.survey + " AND event_id=" +
                             self.activeHaul+" AND workstation_id="+self.workstationBox.currentText())
 
+                    query = self.db.dbQuery(sql)
                     if query.first():# valid chioce of specimen
-                        query =QtSql.QSqlQuery("UPDATE specimen SET sample_id =" + newSampleKey+
+                        sql = ("UPDATE specimen SET sample_id =" + newSampleKey+
                                 " WHERE specimen_id = "+ str(specimen_id)+" AND ship=" + self.ship +
                                 " AND survey=" + self.survey + " AND event_id=" + self.activeHaul+
                                 " AND workstation_id="+self.workstationBox.currentText())
 
                         #  insert the last SQL statement into the local log file
+                        query = self.db.dbQuery(sql)
                         self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss') + "," + query.lastQuery())
 
 
-                        query =QtSql.QSqlQuery("UPDATE measurements SET sample_id =" + newSampleKey+
+                        sql = ("UPDATE measurements SET sample_id =" + newSampleKey+
                                 " WHERE specimen_id = "+ str(specimen_id)+" AND ship=" + self.ship +
                                 " AND survey=" + self.survey + " AND event_id=" + self.activeHaul)
+                        query = self.db.dbQuery(sql)
                         self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss') + "," + query.lastQuery())
 
                 #  now re-enable the constraint with validation
-                query = QtSql.QSqlQuery("ALTER TABLE measurements ENABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                sql = ("ALTER TABLE measurements ENABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                query = self.db.dbQuery(sql)
                 if (query.lastError().isValid()):
                     #  there was a problem enabling the constraint - somehow the data is messed up - rollback
                     QMessageBox.critical(self, 'Error', 'Unable to change species assignment. ' +
@@ -306,7 +318,8 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
                 self.db.transaction()
 
                 #  disable the MEASUREMENT_SPECIMEN_FK constraint
-                query = QtSql.QSqlQuery("ALTER TABLE measurements DISABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                sql = ("ALTER TABLE measurements DISABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                query = self.db.dbQuery(sql)
                 if (query.lastError().isValid()):
                     QMessageBox.critical(self, 'Error', 'Unable to change sex assignment. Cannot disable constraint.')
                     self.db.rollback()
@@ -315,22 +328,25 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
                 #  work through the series of specimen identified by the start and end values
                 for specimen_id in range(int(self.startIDLabel.text()), int(self.endIDLabel.text())+1):
                     #  filter the ID's by workstation
-                    query =QtSql.QSqlQuery("SELECT specimen_id FROM specimen WHERE specimen_id = "+ str(specimen_id)+
+                    sql = ("SELECT specimen_id FROM specimen WHERE specimen_id = "+ str(specimen_id)+
                             " AND ship=" + self.ship +" AND survey=" + self.survey +  " AND event_id=" +
                             self.activeHaul+" AND workstation_id="+self.workstationBox.currentText())
+                    query = self.db.dbQuery(sql)
 
                     if query.first():
                         #  this specimen is one that needs to change - change the sex to the specified value
-                        query1 = QtSql.QSqlQuery("UPDATE measurements set measurement_value = '" +
+                        sql = ("UPDATE measurements set measurement_value = '" +
                                 newSex+"' where specimen_id = "+ str(specimen_id)+" AND ship=" +
                                 self.ship +" AND survey=" + self.survey +" AND event_id=" + self.activeHaul +
                                 " AND measurement_type = 'sex'")
                         #  insert the last SQL statement into the local log file
+                        query1 = self.db.dbQuery(sql)
                         self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss') + "," + query1.lastQuery())
 
 
                 #  attempt to enable the constraints
-                query = QtSql.QSqlQuery("ALTER TABLE measurements ENABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                sql = ("ALTER TABLE measurements ENABLE CONSTRAINT MEASUREMENT_SPECIMEN_FK;")
+                query = self.db.dbQuery(sql)
                 if (query.lastError().isValid()):
                     #  there was a problem enabling the constraint - somehow the data is messed up - rollback
                     QMessageBox.critical(self, 'Error', 'Unable to change sex assignment. ' +
