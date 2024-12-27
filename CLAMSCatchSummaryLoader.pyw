@@ -277,10 +277,6 @@ class CLAMSCatchSummaryLoader(QMainWindow, ui_CatchSummaryLoader.Ui_MainWindow):
         self.appSettings.setValue('winposition', self.pos())
         self.appSettings.setValue('winsize', self.size())
 
-    def connect(self, startTimer, param, startApplication):
-        pass
-
-
 if __name__ == "__main__":
 
     #  see if the ini file path was passed in
