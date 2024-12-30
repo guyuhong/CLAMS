@@ -62,7 +62,7 @@ class CLAMSCatchSummaryLoader(QMainWindow, ui_CatchSummaryLoader.Ui_MainWindow):
         #  start a timer event to connect to the database
         startTimer = QTimer(self)
         startTimer.setSingleShot(True)
-        self.connect(startTimer, SIGNAL("timeout()"), self.startApplication)
+        startTimer.timeout(self.startApplication())
         startTimer.start(0)
 
 
