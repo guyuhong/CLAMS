@@ -356,7 +356,8 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                 sql = ("SELECT device_name FROM devices" +
                         " WHERE device_id=" + badDevice)
                 query = self.db.dbQuery(sql)
-                devNames.append(query.first())
+                dev, = query.first()
+                devNames.append(dev)
 
             #  construct the error text
             if (len(devNames) == 1):
@@ -377,7 +378,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                 self.activeHaul + " and partition = '" + self.activePartition +
                 "' AND event_parameter = 'CodendStatus'")
         query = self.db.dbQuery(sql)
-        currentCodendState = query.first()
+        currentCodendState, = query.first()
 
         #  if there is a current state, set that button on the dialog and display.
         #  if there is no current status, we ignore this button press (don't do anything)
@@ -609,7 +610,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                     " AND survey=" + self.survey + " AND event_id=" + self.activeHaul +
                     " AND partition='" + partition +"' AND event_parameter='PartitionWeightType'")
             query = self.db.dbQuery(sql)
-            weightType = query.first()
+            weightType, = query.first()
 
             if weightType.lower() in ["not_subsampled", "not subsampled"]:
                 #  this partition is not subsampled, add up all of the basket weights
@@ -620,13 +621,14 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                         " AND survey=" + self.survey + " AND event_id=" + self.activeHaul +
                         " AND partition='" + partition + "' AND sample_type='WholeHaul'")
                 query = self.db.dbQuery(sql)
-                parent_id = int(query.first())
+                parent_id, = query.first()
+                parent_id = int(parent_id)
 
                 #  get the sample IDs associated with this parent
                 sql = ("SELECT sample_id FROM samples WHERE ship=" + self.ship +
                         " AND survey=" + self.survey + " AND event_id=" + self.activeHaul +
                         " AND parent_sample=" + str(parent_id))
-                sampleQuery = self.db.dbQuery(sql)
+                sampleQuery, = self.db.dbQuery(sql)
 
                 #  loop thru those samples and add up the baskets
                 for sample_id in sampleQuery:
@@ -794,7 +796,8 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                         self.activeHaul + " AND ship=" + self.ship +
                         " AND survey=" + self.survey)
                 query = self.db.dbQuery(sql)
-                basketWeight = float(query.first())
+                basketWeight, = query.first()
+                basketWeight = float(basketWeight)
 
                 #  make sure we have at least one basket with a weight for this sample
                 if basketWeight != 0:
@@ -814,7 +817,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                                 code + " AND subcategory='" + subcategory + "' AND lower(" +
                                 "species_parameter)='a_param'")
                         query = self.db.dbQuery(sql)
-                        aParm = query.first()
+                        aParm, = query.first()
                         if aParm:
                             try:
                                 self.aParm=float(aParm)
@@ -826,7 +829,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                                 code + " AND subcategory='" + subcategory +
                                 "' AND lower(species_parameter)='b_param'")
                         query = self.db.dbQuery(sql)
-                        bParm = query.first()
+                        bParm, = query.first()
                         if bParm:
                             try:
                                 self.bParm=float(bParm)
