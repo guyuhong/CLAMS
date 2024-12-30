@@ -103,7 +103,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         #  the rest of the initialization code runs.
         initTimer = QTimer(self)
         initTimer.setSingleShot(True)
-        self.connect(initTimer, SIGNAL("timeout()"), self.applicationInit)
+        initTimer.timeout.connect(self.applicationInit)
         initTimer.start(0)
 
 
