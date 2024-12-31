@@ -59,6 +59,7 @@ class BinDialog(QDialog, ui_BinDialog.Ui_binDialog):
         self.lengthFlag=False
         self.depthFlag=False
         self.densityFlag=False
+        self.haulWT = None
 
         #  connect the signals
         self.widthBtn.clicked.connect(self.getWidth)
@@ -136,6 +137,7 @@ class BinDialog(QDialog, ui_BinDialog.Ui_binDialog):
 
 
     def goExit(self):
+        self.haulWT = None
         self.reject()
 
 

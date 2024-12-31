@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_codendStatusDlg(object):
     def setupUi(self, codendStatusDlg):
         codendStatusDlg.setObjectName("codendStatusDlg")
-        codendStatusDlg.resize(376, 551)
+        codendStatusDlg.resize(453, 551)
         self.verticalLayout = QtWidgets.QVBoxLayout(codendStatusDlg)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtWidgets.QGroupBox(parent=codendStatusDlg)

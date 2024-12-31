@@ -620,7 +620,7 @@ class CLAMSSpecimen(QDialog, ui_CLAMSSpecimen_collections.Ui_clamsSpecimen):
         # do the validations
         for valObj in self.validations[i]:
             result = valObj.validate(val, self.measureType, self.values)
-            if not result[0] and not result[0] ==None:
+            if not result[0] and result[0] is not None:
                 # validation failed - ask if user wants to redo or override
                 self.message.setMessage(self.errorIcons[1],self.errorSounds[1], result[1], 'choice')
                 if self.message.exec_():
