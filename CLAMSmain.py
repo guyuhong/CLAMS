@@ -38,6 +38,7 @@
 
 import sys
 import os
+import functools
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
@@ -49,6 +50,7 @@ import admindlg
 #import utilitiesdlg
 import processdlg
 import EventLauncher
+import dbConnection
 from ui import ui_CLAMSMain
 
 
@@ -75,12 +77,17 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.dbPassword = password
         self.settings = app_paths
 
-        #  setup the application window
-        screen = QDesktopWidget().screenGeometry()
-        window = self.geometry()
-        self.setGeometry((screen.width() - window.width()) / 2,
-                         (screen.height() - window.height()) / 2,
-                          window.width(), window.height())
+        #  restore the application state
+        self.appSettings = QSettings('CLAMS', 'MainWindow')
+        size = self.appSettings.value('winsize', QSize(1000,650))
+        position = self.appSettings.value('winposition', QPoint(10,10))
+
+        #  check the current position and size to make sure the app is on the screen
+        position, size = self.checkWindowLocation(position, size)
+
+        #  now move and resize the window
+        self.move(position)
+        self.resize(size)
 
         #  connect signals
         self.trawlEventBtn.clicked.connect(self.launchEvent)
@@ -90,7 +97,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.exitBtn.clicked.connect(self.goExit)
 
         #  set the base directory path - this is the full path to this application
-        self.baseDir = reduce(lambda l,r: l + os.path.sep + r,
+        self.baseDir = functools.reduce(lambda l,r: l + os.path.sep + r,
                 os.path.dirname(os.path.realpath(__file__)).split(os.path.sep))
         #  set the window icon
         try:
@@ -120,7 +127,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         #  width via a stylesheet.
         #    https://doc.qt.io/qt-6/stylesheet-examples.html#customizing-qmainwindow
         #    https://doc.qt.io/qt-6/stylesheet-examples.html
-        appStyleSheet = 'QScrollBar:vertical {width: 40px; height: 20px;}\n'
+        appStyleSheet = 'QScrollBar:vertical{width: 40px; height: 20px;}\n'
 
         #  try to load the background image. This will only work here if ImageDir is
         #  set in the .ini file. We do this so if we have an image, we can display it
@@ -128,16 +135,23 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         if QDir().exists(self.settings['ImageDir']):
             try:
                 #  the background image is based on the app version number
-                imFile = (self.settings['ImageDir'] + 'backgrounds' + os.sep +
-                        self.version + ".jpg")
-                #  add the background image to the style sheet
-                appStyleSheet += "QMainWindow::background-image:url(" + imFile + ")"
+                imFile = (self.settings['ImageDir'] + '/backgrounds/' +
+                        os.sep + self.version + ".png")
+                imFile = os.path.normpath(imFile)
+
+                #  the image URL must use forward slashes
+                imFile = imFile.replace(os.sep, '/')
+
+                #  set the background of the central widget
+                appStyleSheet += ("#centralwidget {border-image:url(" + imFile + ");\n" +
+                    "border-repeat: no-repeat;\n border-position: center;}")
+
             except:
                 #  skip the background image if there is a problem
                 pass
 
-        #  set the main window style sheet
-        self.parent.setStyleSheet(appStyleSheet)
+
+        self.centralWidget().setStyleSheet(appStyleSheet)
 
         #  create an instance of our dbConnection
         self.db = dbConnection.dbConnection(self.dbName, self.dbUser,
@@ -174,7 +188,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                 self.workStation)
         query = self.db.dbQuery(sql)
         status, = query.first()
-        if status.toLower() == 'open':
+        if status.lower() == 'open':
             #  the workstation is marked as open so we set it closed
             sql = ("UPDATE " + self.schema + ".workstations SET status='closed' " +
                     "WHERE workstation_ID=" + self.workStation)
@@ -188,7 +202,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
             self.settings.update({parameter:parameter_value})
 
         # check for a valid Active Survey and Ship
-        if not self.settings.has_key(QString('ActiveSurvey')):
+        if 'ActiveSurvey' not in self.settings:
             #  no "ActiveSurvey" parameter exists in application_configuration
             QMessageBox.critical(self, "ERROR", "<font size = 12>ActiveSurvey parameter not found in " +
                     "application_configuration table. Please contact your CLAMS administrator " +
@@ -210,15 +224,15 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.setActiveSurvey()
 
         #  clean up and check our paths
-        if self.settings.has_key('ImageDir'):
+        if 'ImageDir' in self.settings:
             self.settings['ImageDir'], exists = self.checkPath(self.settings['ImageDir'], 'images')
         else:
             self.settings['ImageDir'], exists = self.checkPath(None, 'images')
-        if self.settings.has_key('IconDir'):
+        if 'IconDir' in self.settings:
             self.settings['IconDir'], exists = self.checkPath(self.settings['IconDir'], 'icons')
         else:
             self.settings['IconDir'], exists = self.checkPath(None, 'icons')
-        if self.settings.has_key('SoundsDir'):
+        if 'SoundsDir' in self.settings:
             self.settings['SoundsDir'], exists = self.checkPath(self.settings['SoundsDir'], 'sounds')
         else:
             self.settings['SoundsDir'], exists = self.checkPath(None, 'sounds')
@@ -229,7 +243,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         else:
             imFile = (self.settings['ImageDir'] + 'backgrounds' + os.sep +
                     self.version + ".jpg")
-            self.parent.setStyleSheet("QMainWindow::background-image:url(" + imFile + ")")
+            self.setStyleSheet("QMainWindow::background-image:url(" + imFile + ")")
 
         #  load error dialog icons
         if not QDir().exists(self.settings['IconDir']):
@@ -420,7 +434,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                 sql = "SELECT status FROM " + self.schema + ".workstations"
                 query = self.db.dbQuery(sql)
                 for status, in query:
-                    if sation.lower() == 'open':
+                    if status.lower() == 'open':
                         stationOpen = True
                         break
                 if stationOpen:
@@ -551,6 +565,78 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                 return (defaultPath, True)
         else:
             return (thisPath, True)
+
+
+
+    def checkWindowLocation(self, position, size, padding=[5, 25]):
+        '''
+        checkWindowLocation accepts a window position (QPoint) and size (QSize)
+        and returns a potentially new position and size if the window is currently
+        positioned off the screen.
+
+        This function uses QScreen.availableVirtualGeometry() which returns the full
+        available desktop space *not* including taskbar. For all single and "typical"
+        multi-monitor setups this should work reasonably well. But for multi-monitor
+        setups where the monitors may be different resolutions, have different
+        orientations or different scaling factors, the app may still fall partially
+        or totally offscreen. A more thorough check gets complicated, so hopefully
+        those cases are very rare.
+
+        If the user is holding the <shift> key while this method is run, the
+        application will be forced to the primary monitor.
+        '''
+
+        #  create a QRect that represents the app window
+        appRect = QRect(position, size)
+
+        #  check for the shift key which we use to force a move to the primary screem
+        resetPosition = QGuiApplication.queryKeyboardModifiers() == Qt.KeyboardModifier.ShiftModifier
+        if resetPosition:
+            position = QPoint(padding[0], padding[0])
+
+        #  get a reference to the primary system screen - If the app is off the screen, we
+        #  will restore it to the primary screen
+        primaryScreen = QGuiApplication.primaryScreen()
+
+        #  assume the new and old positions are the same
+        newPosition = position
+        newSize = size
+
+        #  Get the desktop geometry. We'll use availableVirtualGeometry to get the full
+        #  desktop rect but note that if the monitors are different resolutions or have
+        #  different scaling, some parts of this rect can still be offscreen.
+        screenGeometry = primaryScreen.availableVirtualGeometry()
+
+        #  if the app is partially or totally off screen or we're force resetting
+        if resetPosition or not screenGeometry.contains(appRect):
+
+            #  check if the upper left corner of the window is off the left side of the screen
+            if position.x() < screenGeometry.x():
+                newPosition.setX(screenGeometry.x() + padding[0])
+            #  check if the upper right is off the right side of the screen
+            if position.x() + size.width() >= screenGeometry.width():
+                p = screenGeometry.width() - size.width() - padding[0]
+                if p < padding[0]:
+                    p = padding[0]
+                newPosition.setX(p)
+            #  check if the top of the window is off the top/bottom of the screen
+            if position.y() < screenGeometry.y():
+                newPosition.setY(screenGeometry.y() + padding[0])
+            if position.y() + size.height() >= screenGeometry.height():
+                p = screenGeometry.height() - size.height() - padding[1]
+                if p < padding[0]:
+                    p = padding[0]
+                newPosition.setY(p)
+
+            #  now make sure the lower right (resize handle) is on the screen
+            if (newPosition.x() + newSize.width()) > screenGeometry.width():
+                newSize.setWidth(screenGeometry.width() - newPosition.x() - padding[0])
+            if (newPosition.y() + newSize.height()) > screenGeometry.height():
+                newSize.setHeight(screenGeometry.height() - newPosition.y() - padding[1])
+
+        return [newPosition, newSize]
+
+
 
 
 if __name__ == "__main__":

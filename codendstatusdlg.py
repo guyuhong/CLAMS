@@ -44,7 +44,7 @@ from ui import ui_CodendStatusDlg
 
 
 class CodendStatusDlg(QDialog, ui_CodendStatusDlg.Ui_codendStatusDlg):
-    def __init__(self, parent=None):
+    def __init__(self, sciName, parent=None):
         super(CodendStatusDlg, self).__init__(parent)
         self.setupUi(self)
         self.survey=parent.survey
@@ -52,7 +52,7 @@ class CodendStatusDlg(QDialog, ui_CodendStatusDlg.Ui_codendStatusDlg):
         self.activeHaul=parent.activeHaul
         self.activePartition=parent.activePartition
         self.state_value=None
-        self.firstName=parent.firstName
+        self.firstName=sciName
         self.errorIcons=parent.errorIcons
         self.errorSounds=parent.errorSounds
         self.message=parent.message
@@ -66,7 +66,7 @@ class CodendStatusDlg(QDialog, ui_CodendStatusDlg.Ui_codendStatusDlg):
 
 
     def getStatus(self):
-        btn=self.sender()
+        btn = self.sender()
         if btn.isChecked():
             self.state_value=btn.text()
             self.exitTimer.start(1000)

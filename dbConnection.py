@@ -376,8 +376,7 @@ class dbConnection:
         '''
         self.logger = logging.getLogger(self.label)
         self.logger.setLevel(logging.INFO)
-
-        self.handler = logging.handlers.FileHandler(logfile)
+        self.handler = logging.FileHandler(logfile)
         formatter = logging.Formatter('%(asctime)s ::: %(message)s')
         self.handler.setFormatter(formatter)
 

@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_clamsMain(object):
     def setupUi(self, clamsMain):
         clamsMain.setObjectName("clamsMain")
-        clamsMain.resize(850, 600)
+        clamsMain.resize(1000, 650)
         clamsMain.setMinimumSize(QtCore.QSize(850, 600))
         clamsMain.setMaximumSize(QtCore.QSize(3840, 2160))
         self.centralwidget = QtWidgets.QWidget(parent=clamsMain)
@@ -27,6 +27,7 @@ class Ui_clamsMain(object):
         font.setWeight(75)
         self.schemaLabel.setFont(font)
         self.schemaLabel.setText("")
+        self.schemaLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.schemaLabel.setObjectName("schemaLabel")
         self.verticalLayout_3.addWidget(self.schemaLabel)
         self.titleLabel = QtWidgets.QLabel(parent=self.centralwidget)

@@ -112,8 +112,11 @@ class BarcodeDuplicate(QObject):
 
 
 '''
-The validationTest class enables testing of validations by simply executing the
-validation module.
+The validationTest class enables testing of validations by creating a database
+connection, creating an instance of the validation object, and then executing its
+validate method.
+
+This class will need to be customized a bit for each individual validation.
 '''
 class validationTest(QObject):
         def __init__(self):
@@ -131,7 +134,10 @@ class validationTest(QObject):
 
 
         def runTest(self):
-            '''runTest runs the test of the validation.
+            '''runTest attempts to create a database connection by presenting a dialog
+            requesting credentials. If successful, it instantiates the validation and
+            runs the validate method of said validation. You should set up any
+            specific parameters required for this validation's test here.
             '''
 
             #  set up the required parameters for this test

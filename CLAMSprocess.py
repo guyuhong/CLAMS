@@ -59,7 +59,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  set up the GUI
         super(CLAMSProcess, self).__init__(parent)
         self.setupUi(self)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         # initialize variables
         self.reloadFlag=False
@@ -79,13 +79,11 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
 
         #  set up some colors
         self.blue = QPalette()
-        self.blue.setColor(QPalette.ButtonText,QColor(0, 0, 255))
+        self.blue.setColor(QPalette.ColorRole.ButtonText,QColor(0, 0, 255))
         self.black = QPalette()
-        self.black.setColor(QPalette.ButtonText,QColor(0, 0, 0))
+        self.black.setColor(QPalette.ColorRole.ButtonText,QColor(0, 0, 0))
 
-        #  setup reoccurring dialogs
-        self.message = messagedlg.MessageDlg(self)
-        self.codendstate = codendstatusdlg.CodendStatusDlg(self)
+
 
         # set up button colors
         self.haulBtn.setPalette(self.black)
@@ -104,15 +102,15 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         self.doneBtn.clicked.connect(self.goExit)
 
         #  set up the window position
-        screen = QDesktopWidget().screenGeometry()
-        window = self.geometry()
-        self.setGeometry((screen.width() - window.width()) / 2,
-                         (screen.height() - window.height()) / 2,
-                         window.width(), window.height())
-        self.setMinimumSize(window.width(), window.height())
-        self.setMaximumSize(window.width(), window.height())
-        self.windowAnchor = ((screen.height() - window.height()) / 2, window.height())
-        self.settings.update({"WindowAnchor":window.y() + window.height()})
+#        screen = QDesktopWidget().screenGeometry()
+#        window = self.geometry()
+#        self.setGeometry((screen.width() - window.width()) / 2,
+#                         (screen.height() - window.height()) / 2,
+#                         window.width(), window.height())
+#        self.setMinimumSize(window.width(), window.height())
+#        self.setMaximumSize(window.width(), window.height())
+#        self.windowAnchor = ((screen.height() - window.height()) / 2, window.height())
+#        self.settings.update({"WindowAnchor":window.y() + window.height()})
 
         #  set the event number
         self.haulLabel.setText(self.activeHaul)
@@ -125,7 +123,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         for scientist, in query:
             self.sciList.append(scientist)
         #  instantiate the list dialog with the sci names
-        self.listDialog = listseldialog.ListSelDialog(self.sciList, self)
+        self.listDialog = listseldialog.ListSelDialog(self.sciList, parent=self)
         self.listDialog.label.setText('Identify yourself, please.')
         #  and finally present the dialog - force the selection
         needScientist = True
@@ -144,6 +142,10 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  parse the first name
         p = self.scientist.split(' ')
         self.firstName = p[0]
+
+        #  setup reoccurring dialogs
+        self.message = messagedlg.MessageDlg(self)
+        self.codendstate = codendstatusdlg.CodendStatusDlg(self.firstName, self)
 
         #  update this workstation's status to "Open". We also update the
         #  current_event value
@@ -373,7 +375,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
     def editCodendState(self):
 
         #  get the existing codend status
-        sql = ("SELECT * FROM event_data WHERE ship = " + self.ship +
+        sql = ("SELECT parameter_value FROM event_data WHERE ship = " + self.ship +
                 " and survey = " + self.survey + " and event_id = " +
                 self.activeHaul + " and partition = '" + self.activePartition +
                 "' AND event_parameter = 'CodendStatus'")
