@@ -57,14 +57,14 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
         self.oldSampleDict={}
         self.speciesCodes=[]
         self.selectionList = []
-        while query.next():
-            if query.value(4).toString() is not 'None':
-                species_tag=query.value(0).toString()+'-'+query.value(4).toString()
+        for value in query:
+            if value[4] is not 'None':
+                species_tag=value[0]+'-'+value[4]
             else:
-                species_tag=query.value(0).toString()
+                species_tag=value[0]
 
             self.newSpeciesBox.addItem(species_tag)
-            self.sampleDict.update({species_tag:query.value(3).toString()})
+            self.sampleDict.update({species_tag:value[3]})
 
 
         # set up tables for data display
@@ -94,9 +94,9 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
         self.clearBtn.clicked.connect(self.clearFilters)
         self.endIDBtn.clicked.connect(self.getIDRange)
         self.applyChangeBtn.clicked.connect(self.applyChange)
-        self.scientistBox.clicked.connect(self.filterMeasurements)
-        self.workstationBox.clicked.connect(self.filterMeasurements)
-        self.speciesBox.clicked.connect(self.filterMeasurements)
+        self.scientistBox.activated[int].connect(self.filterMeasurements)
+        self.workstationBox.activated[int].connect(self.filterMeasurements)
+        self.speciesBox.activated[int].connect(self.filterMeasurements)
 
         self.scientistBox.setCurrentIndex(-1)
         self.workstationBox.setCurrentIndex(-1)
@@ -111,7 +111,7 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
         #  from the window's init method.
         initTimer = QTimer(self)
         initTimer.setSingleShot(True)
-        self.initTimer.clicked.connect(self.formInit)
+        initTimer.timeout.connect(self.formInit)
         initTimer.start(0)
 
     def clearFilters(self):
