@@ -12,8 +12,9 @@ in the catch summary table.
 #  import dependent modules
 import sys
 import os
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtWidgets import *
+
 import dbConnection
 import Clamsbase2Functions
 from ui import ui_CatchSummaryLoader
@@ -53,15 +54,15 @@ class CLAMSCatchSummaryLoader(QMainWindow, ui_CatchSummaryLoader.Ui_MainWindow):
         self.schemaLabel.setText('Schema: Not Connected')
 
         #  connect this GUI's button signals
-        self.connect(self.pbUpdateSurvey, SIGNAL("clicked()"), self.updateSurvey)
-        self.connect(self.pbUpdateEvent, SIGNAL("clicked()"), self.updateEvent)
-        self.connect(self.cbShip, SIGNAL("currentIndexChanged(QString)"), self.refreshSurveys)
-        self.connect(self.cbSurvey, SIGNAL("currentIndexChanged(QString)"), self.refreshEvents)
+        self.pbUpdateSurvey.clicked.connect(self.updateSurvey)
+        self.pbUpdateEvent.clicked.connect(self.updateEvent)
+        self.cbShip.clicked.connect(self.refreshSurveys)
+        self.cbSurvey.clicked.connect(self.refreshEvents)
 
         #  start a timer event to connect to the database
         startTimer = QTimer(self)
         startTimer.setSingleShot(True)
-        self.connect(startTimer, SIGNAL("timeout()"), self.startApplication)
+        startTimer.timeout.connect(self.startApplication())
         startTimer.start(0)
 
 
@@ -275,7 +276,6 @@ class CLAMSCatchSummaryLoader(QMainWindow, ui_CatchSummaryLoader.Ui_MainWindow):
             self.db.dbClose()
         self.appSettings.setValue('winposition', self.pos())
         self.appSettings.setValue('winsize', self.size())
-
 
 if __name__ == "__main__":
 

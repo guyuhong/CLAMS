@@ -16,9 +16,9 @@ yesNo = self.message.exec_()
 
 """
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from ui.xga import ui_MessageDlg
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import QDialog
+from ui import ui_MessageDlg
 
 
 class addspecedlg(QDialog, ui_MessageDlg.Ui_messageDlg):
@@ -26,9 +26,9 @@ class addspecedlg(QDialog, ui_MessageDlg.Ui_messageDlg):
         super(addspecedlg, self).__init__(parent)
         self.setupUi(self)
         self.msgLabel.palette().setColor(self.msgLabel.backgroundRole(), QColor(255, 255, 255))
-        self.connect(self.btn_2, SIGNAL("clicked()"), self.goNo)
-        self.connect(self.btn_1, SIGNAL("clicked()"), self.goYes)
-        self.connect(self.btn_3, SIGNAL("clicked()"), self.goYes)
+        self.btn_1.clicked.connect(self.goNo())
+        self.btn_2.clicked.connect(self.goYes())
+        self.btn_3.clicked.connect(self.goYes())
 
     def setMessage(self, icon, sound, string, mode=''):
         sound.play()
