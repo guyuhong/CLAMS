@@ -20,7 +20,6 @@
       <font>
        <family>Arial Black</family>
        <pointsize>18</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -40,7 +39,6 @@
          <font>
           <family>Arial Black</family>
           <pointsize>18</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -53,6 +51,9 @@
         <property name="autoExclusive">
          <bool>true</bool>
         </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -61,7 +62,6 @@
          <font>
           <family>Arial Black</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -88,7 +88,6 @@
          <font>
           <family>Arial Black</family>
           <pointsize>18</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -100,6 +99,9 @@
         </property>
         <property name="autoExclusive">
          <bool>true</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -115,7 +117,6 @@
          <font>
           <family>Arial Black</family>
           <pointsize>18</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -127,6 +128,9 @@
         </property>
         <property name="autoExclusive">
          <bool>true</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -142,7 +146,6 @@
          <font>
           <family>Arial Black</family>
           <pointsize>18</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -154,6 +157,9 @@
         </property>
         <property name="autoExclusive">
          <bool>true</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -169,7 +175,6 @@
          <font>
           <family>Arial Black</family>
           <pointsize>18</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -181,6 +186,9 @@
         </property>
         <property name="autoExclusive">
          <bool>true</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

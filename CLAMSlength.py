@@ -178,9 +178,9 @@ class CLAMSLength(QDialog, ui_CLAMSLength.Ui_clamsLength):
         nParms = len(params)
         vals = [None] * nParms
         for i in range(nParms):
-            query = QtSql.QSqlQuery("SELECT parameter_value FROM species_data WHERE species_code=" +
+            sql = ("SELECT parameter_value FROM species_data WHERE species_code=" +
                     self.activeSpcCode+" AND subcategory='" + self.activeSpcSubcat +
-                    "' AND lower(species_parameter)='" + params[i] + "'", self.db)
+                    "' AND lower(species_parameter)='" + params[i] + "'")
             if query.first():
                 vals[i] = query.value(0).toString()
 

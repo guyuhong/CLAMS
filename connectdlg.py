@@ -93,12 +93,10 @@ class ConnectDlg(QtWidgets.QDialog, ui_ConnectDlg.Ui_connectDlg):
         else:
             self.schemaBox.setCurrentIndex(0)
 
-
         if not enableBioschema:
             self.schemaBox.setEnabled(False)
             self.schemaBox.setVisible(False)
             self.schemaLabel.setVisible(False)
-
         else:
             self.schemaBox.setEnabled(True)
 

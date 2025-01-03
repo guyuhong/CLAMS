@@ -47,6 +47,7 @@ import messagedlg
 import numpad
 import CLAMSprocess
 import admindlg
+import connectdlg
 #import utilitiesdlg
 import processdlg
 import EventLauncher
@@ -56,7 +57,7 @@ from ui import ui_CLAMSMain
 
 class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
 
-    def __init__(self, dataSource, schema, user, password, app_paths, parent=None):
+    def __init__(self, dataSource, schema, user, password, settings, parent=None):
         #  initialize the superclasses
         super().__init__(parent)
 
@@ -67,15 +68,13 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.version = "V3.0"
         self.testing = False
 
-        #  define defaults
-        self.backLogger = None
-
         #  set database credentials
+        self.db = None
         self.schema = schema
         self.dbName = dataSource
         self.dbUser = user
         self.dbPassword = password
-        self.settings = app_paths
+        self.settings = settings
 
         #  restore the application state
         self.appSettings = QSettings('CLAMS', 'MainWindow')
@@ -122,40 +121,142 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         """
 
         #  In order to make scrolling easier for users using a touchscreen with gloves, CLAMS
-        #  sets the width of the scroll bar about double the standard width. The old method
-        #  using QApplication SetGlobalStrut method is deprecated in Qt 5+ so we need to set the
-        #  width via a stylesheet.
-        #    https://doc.qt.io/qt-6/stylesheet-examples.html#customizing-qmainwindow
-        #    https://doc.qt.io/qt-6/stylesheet-examples.html
-        appStyleSheet = 'QScrollBar:vertical{width: 80px; height: 20px;}\n'
+        #  sets the width of the scroll bar about double the standard width. This can be
+        #  altered by setting GUI-ScrollBar-Width in the .ini file
+        width = str(self.settings['GUI-ScrollBar-Width'])
+        appStyleSheet = 'QScrollBar::vertical{width: ' + width + 'px;}\n'
+        self.setStyleSheet(appStyleSheet)
 
-        #  try to load the background image. This will only work here if ImageDir is
-        #  set in the .ini file. We do this so if we have an image, we can display it
-        #  here so if the DB connection fails the dialog doesn't look so janky.
-        if QDir().exists(self.settings['ImageDir']):
-            try:
-                #  the background image is based on the app version number
-                imFile = (self.settings['ImageDir'] + '/backgrounds/' +
-                        os.sep + self.version + ".png")
-                imFile = os.path.normpath(imFile)
+        #  try to load the background image.
+        try:
+            #  the background image is based on the app version number
+            imFile = (self.settings['ImageDir'] + '/backgrounds/' +
+                    os.sep + self.version + ".png")
+            imFile = os.path.normpath(imFile)
 
-                #  the image URL must use forward slashes
-                imFile = imFile.replace(os.sep, '/')
+            #  the image URL must use forward slashes
+            imFile = imFile.replace(os.sep, '/')
 
-                #  set the background of the central widget
-                appStyleSheet += ("#centralwidget {border-image:url(" + imFile + ");\n" +
-                    "border-repeat: no-repeat;\n border-position: center;}")
+            #  set the background of the central widget
+            appStyleSheet = ("#centralwidget {border-image:url(" + imFile + ");\n" +
+                "border-repeat: no-repeat;\n border-position: center;}")
 
-            except:
-                #  skip the background image if there is a problem
-                pass
-
-
+        except:
+            #  skip the background image if there is a problem
+            pass
         self.centralWidget().setStyleSheet(appStyleSheet)
+
+        #  clean up and check our paths if any fail, try to fallback to local folders
+        if 'ImageDir' in self.settings:
+            self.settings['ImageDir'], exists = self.checkPath(self.settings['ImageDir'], 'images')
+        else:
+            self.settings['ImageDir'], exists = self.checkPath(None, 'images')
+        if 'IconDir' in self.settings:
+            self.settings['IconDir'], exists = self.checkPath(self.settings['IconDir'], 'icons')
+        else:
+            self.settings['IconDir'], exists = self.checkPath(None, 'icons')
+        if 'SoundsDir' in self.settings:
+            self.settings['SoundsDir'], exists = self.checkPath(self.settings['SoundsDir'], 'sounds')
+        else:
+            self.settings['SoundsDir'], exists = self.checkPath(None, 'sounds')
+
+        #  load error dialog icons
+        if not QDir().exists(self.settings['IconDir']):
+            QMessageBox.critical(self, "ERROR", "<font size = 12>Icon directory not found. ")
+            self.errorIcons = []
+        else:
+            dialogImage = QImage(self.settings['IconDir'] + "squidworth.jpg")
+            errorIcon = QPixmap.fromImage(dialogImage)
+            dialogImage = QImage(self.settings['IconDir'] + "spongebob.jpg")
+            msgIcon = QPixmap.fromImage(dialogImage)
+            dialogImage = QImage(self.settings['IconDir'] + "patrick.jpg")
+            overIcon = QPixmap.fromImage(dialogImage)
+            dialogImage = QImage(self.settings['IconDir'] + "sandy.jpg")
+            okIcon = QPixmap.fromImage(dialogImage)
+            self.errorIcons = [errorIcon,  msgIcon,  overIcon, okIcon]
+
+        #  load base sound effects (devices sounds are handled elsewhere)
+        self.errorSounds = []
+        self.startSound = None
+        self.printSound = None
+        if not QDir().exists(self.settings['SoundsDir']):
+            QMessageBox.warning(self, "ERROR", "<font size = 12>Sound directory not found. " +
+                    "CLAMS will operate with generic sounds.")
+        else:
+            #  these 4 sounds are used to indicate errors, information, questions and ???
+            errorSoundFiles = ['Error.wav', 'Ding.wav', 'Exclamation.wav', 'Notify.wav'] 
+            for sound in errorSoundFiles:
+                soundEffect = QSoundEffect()
+                soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + sound))
+                self.errorSounds.append(soundEffect)
+
+            #  load the "opening" sound (I think this was an easter egg at some point) and the
+            #  sound made when sending something to the label printer
+            soundEffect = QSoundEffect()
+            soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + 'opening.wav'))
+            self.startSound = soundEffect
+            soundEffect = QSoundEffect()
+            soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + 'KARATE.wav'))
+            self.printSound = soundEffect
+
+        #  create instances of some of our common dialogs
+        self.message = messagedlg.MessageDlg(self)
+        self.numDialog = numpad.NumPad(self)
+
+        #  setup local SQL logger - CLAMS creates a local text file that contains all of the SQL transactions
+        #  First, normalize the path and make sure we have a trailing separator
+        self.settings['LoggingDir'] = os.path.normpath(self.settings['LoggingDir'])
+        if (self.settings['LoggingDir'][-1] != '/') or (self.settings['LoggingDir'][-1] != '\\'):
+            self.settings['LoggingDir'] = self.settings['LoggingDir'] + os.sep
+
+        #  check if the logging directory exists
+        if not QDir().exists(self.settings['LoggingDir']):
+            reply = QMessageBox.question(self, "ERROR", "<font size = 12>SQL logging directory not found. " +
+                    "Do you want to create it?", QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                QDir().mkdir(self.settings['LoggingDir'])
+            else:
+                QMessageBox.critical(self, "ERROR", "<font size = 12>Sorry, CLAMS cannot operate without a " +
+                        "SQL logging directory. Goodbye!")
+                self.close()
+                return
+
+        #  After doing some basic setup, we'll continue by connecting to the database
+        #  using a timer. This allows the app to draw the initial GUI window before
+        #  (possibly) presenting the login dialog and logging into the database.
+        initTimer = QTimer(self)
+        initTimer.setSingleShot(True)
+        initTimer.timeout.connect(self.connectToDatabase)
+        initTimer.start(0)
+
+
+    def connectToDatabase(self):
+        '''connectToDatabase is called during application startup to
+        possibly gather creds and then connect to the database and finish
+        setting up the main window.
+        '''
+
+        #  determine if we're connecting to an Oracle database or not
+        if self.settings['Database'].lower() == 'oracle':
+            isOracle = True
+        else:
+            isOracle = False
+
+        #  if we're missing any credentials, get them from the user
+        if self.dbName == '' or self.dbUser == '' or self.dbPassword == '':
+            connectionDialog = connectdlg.ConnectDlg(self.dbName, self.dbUser,
+                    self.dbPassword, createConnection=False, parent=self)
+            ok = connectionDialog.exec()
+            if not ok:
+                self.close()
+                return
+            self.dbName = connectionDialog.getSource()
+            self.dbUser = connectionDialog.getUsername()
+            self.dbPassword = connectionDialog.getPassword()
 
         #  create an instance of our dbConnection
         self.db = dbConnection.dbConnection(self.dbName, self.dbUser,
-                self.dbPassword, label='CLAMS', isOracle=True)
+                self.dbPassword, label=self.schema, isOracle=isOracle)
 
         #  and try to connect
         try:
@@ -222,89 +323,6 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
 
         #  query the db for the active survey and update the ship/survey state variables and the GUI
         self.setActiveSurvey()
-
-        #  clean up and check our paths
-        if 'ImageDir' in self.settings:
-            self.settings['ImageDir'], exists = self.checkPath(self.settings['ImageDir'], 'images')
-        else:
-            self.settings['ImageDir'], exists = self.checkPath(None, 'images')
-        if 'IconDir' in self.settings:
-            self.settings['IconDir'], exists = self.checkPath(self.settings['IconDir'], 'icons')
-        else:
-            self.settings['IconDir'], exists = self.checkPath(None, 'icons')
-        if 'SoundsDir' in self.settings:
-            self.settings['SoundsDir'], exists = self.checkPath(self.settings['SoundsDir'], 'sounds')
-        else:
-            self.settings['SoundsDir'], exists = self.checkPath(None, 'sounds')
-
-        #  load background image - try again if we failed earlier
-        if not QDir().exists(self.settings['ImageDir']):
-             QMessageBox.critical(self, "ERROR", "<font size = 12>Image directory not found. ")
-        else:
-            imFile = (self.settings['ImageDir'] + 'backgrounds' + os.sep +
-                    self.version + ".jpg")
-            self.setStyleSheet("QMainWindow::background-image:url(" + imFile + ")")
-
-        #  load error dialog icons
-        if not QDir().exists(self.settings['IconDir']):
-            QMessageBox.critical(self, "ERROR", "<font size = 12>Icon directory not found. ")
-            self.errorIcons = []
-        else:
-            dialogImage = QImage(self.settings['IconDir'] + "squidworth.jpg")
-            errorIcon = QPixmap.fromImage(dialogImage)
-            dialogImage = QImage(self.settings['IconDir'] + "spongebob.jpg")
-            msgIcon = QPixmap.fromImage(dialogImage)
-            dialogImage = QImage(self.settings['IconDir'] + "patrick.jpg")
-            overIcon = QPixmap.fromImage(dialogImage)
-            dialogImage = QImage(self.settings['IconDir'] + "sandy.jpg")
-            okIcon = QPixmap.fromImage(dialogImage)
-            self.errorIcons = [errorIcon,  msgIcon,  overIcon, okIcon]
-
-        #  load base sound effects (devices sounds are handled elsewhere)
-        self.errorSounds = []
-        self.startSound = None
-        self.printSound = None
-        if not QDir().exists(self.settings['SoundsDir']):
-            QMessageBox.warning(self, "ERROR", "<font size = 12>Sound directory not found. " +
-                    "CLAMS will operate with generic sounds.")
-        else:
-            #  these 4 sounds are used to indicate errors, information, questions and ???
-            errorSoundFiles = ['Error.wav', 'Ding.wav', 'Exclamation.wav', 'Notify.wav'] 
-            for sound in errorSoundFiles:
-                soundEffect = QSoundEffect()
-                soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + sound))
-                self.errorSounds.append(soundEffect)
-
-            #  load the "opening" sound (I think this was an easter egg at some point) and the
-            #  sound made when sending something to the label printer
-            soundEffect = QSoundEffect()
-            soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + 'opening.wav'))
-            self.startSound = soundEffect
-            soundEffect = QSoundEffect()
-            soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + 'KARATE.wav'))
-            self.printSound = soundEffect
-
-        #  create instances of some of our common dialogs
-        self.message = messagedlg.MessageDlg(self)
-        self.numDialog = numpad.NumPad(self)
-
-        #  setup local SQL logger - CLAMS creates a local text file that contains all of the SQL transactions
-        #  First, normalize the path and make sure we have a trailing separator
-        self.settings['LoggingDir'] = os.path.normpath(self.settings['LoggingDir'])
-        if (self.settings['LoggingDir'][-1] != '/') or (self.settings['LoggingDir'][-1] != '\\'):
-            self.settings['LoggingDir'] = self.settings['LoggingDir'] + os.sep
-
-        #  check if the logging directory exists
-        if not QDir().exists(self.settings['LoggingDir']):
-            reply = QMessageBox.question(self, "ERROR", "<font size = 12>SQL logging directory not found. " +
-                    "Do you want to create it?", QMessageBox.Yes, QMessageBox.No)
-            if reply == QMessageBox.Yes:
-                QDir().mkdir(self.settings['LoggingDir'])
-            else:
-                QMessageBox.critical(self, "ERROR", "<font size = 12>Sorry, CLAMS cannot operate without a " +
-                        "SQL logging directory. Goodbye!")
-                self.close()
-                return
 
         #  generate the log file name
         loggerFilename = ('CLAMS_' + QDateTime.currentDateTime().toString('MMddyyyy_hhmmss') +
@@ -504,7 +522,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
 
         #  create the CLAMSProcess window and display it
         procWindow = CLAMSprocess.CLAMSProcess(self)
-        ok = procWindow.exec()
+        procWindow.exec()
 
 
     def utilities(self):
@@ -534,7 +552,8 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         Clean up when the CLAMS main window is closed.
         """
         #  close our connection to the database
-        self.db.dbClose()
+        if self.db:
+            self.db.dbClose()
 
 
 
@@ -637,8 +656,6 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         return [newPosition, newSize]
 
 
-
-
 if __name__ == "__main__":
 
     #  see if the ini file path was passed in
@@ -653,23 +670,25 @@ if __name__ == "__main__":
     initSettings = QSettings(iniFile, QSettings.Format.IniFormat)
 
     #  extract connection parameters
-    dataSource = initSettings.value('ODBC_Data_Source', 'NULL')
-    user = initSettings.value('User', 'NULL')
-    password = initSettings.value('Password', 'NULL')
-    schema = initSettings.value('Schema', 'NULL')
+    dataSource = initSettings.value('ODBC_Data_Source', '')
+    user = initSettings.value('User', '')
+    password = initSettings.value('Password', '')
+    schema = initSettings.value('Schema', 'clamsbase2')
 
-    #  extract the application paths
-    app_paths = {}
-    app_paths['LoggingDir'] = initSettings.value('LoggingDir', './sql_logs')
-    app_paths['ImageDir'] = initSettings.value('ImageDir', './images')
-    app_paths['SoundsDir'] = initSettings.value('SoundsDir', './sounds')
-    app_paths['IconDir'] = initSettings.value('IconDir', './icons')
-
+    #  extract the application paths and settings
+    settings = {}
+    settings['LoggingDir'] = initSettings.value('LoggingDir', './sql_logs')
+    settings['ImageDir'] = initSettings.value('ImageDir', './images')
+    settings['SoundsDir'] = initSettings.value('SoundsDir', './sounds')
+    settings['IconDir'] = initSettings.value('IconDir', './icons')
+    settings['Database'] = initSettings.value('Database', 'Oracle')
+    settings['GUI-ScrollBar-Width'] = initSettings.value('Database', 40)
+    
     #  create an instance of QApplication
     app = QApplication(sys.argv)
 
     #  create an instance of the CLAMS main form
-    form = CLAMSMain(dataSource, schema, user, password, app_paths)
+    form = CLAMSMain(dataSource, schema, user, password, settings)
 
     #  show it
     form.show()

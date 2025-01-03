@@ -71,7 +71,6 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         self.workStation=parent.workStation
         self.errorSounds=parent.errorSounds
         self.errorIcons=parent.errorIcons
-        self.backLogger=parent.backLogger
         self.testing=parent.testing
         self.partitions=[]
         self.activePartition=None
@@ -408,16 +407,17 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                     btn.setChecked(True)
             #  now display the codendstate dialog
             self.codendstate.exec()
+            
             #  update the state based on the dialog selection
-            codendstatus = self.codendstate.state_value
-
-            #  and update the database entry
-            sql = ("UPDATE event_data SET parameter_value='" + codendstatus +
-                    "' WHERE ship = " + self.ship + " and survey = " +
-                    self.survey + " and event_id = " + self.activeHaul +
-                    " and partition = '" +  self.activePartition +
-                    "' AND event_parameter = 'CodendStatus'")
-            self.db.dbExec(sql)
+            newStatus = self.codendstate.state_value
+            if newStatus != currentCodendState:
+                #  and update the database entry
+                sql = ("UPDATE event_data SET parameter_value='" + newStatus +
+                        "' WHERE ship = " + self.ship + " and survey = " +
+                        self.survey + " and event_id = " + self.activeHaul +
+                        " and partition = '" +  self.activePartition +
+                        "' AND event_parameter = 'CodendStatus'")
+                self.db.dbExec(sql)
 
 
     def getHaul(self):

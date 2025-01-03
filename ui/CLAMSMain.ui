@@ -27,13 +27,15 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <property name="spacing">
+     <number>2</number>
+    </property>
     <item>
      <widget class="QLabel" name="schemaLabel">
       <property name="font">
        <font>
         <family>Gill Sans MT</family>
         <pointsize>16</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -50,8 +52,7 @@
       <property name="font">
        <font>
         <family>Arial Black</family>
-        <pointsize>48</pointsize>
-        <weight>75</weight>
+        <pointsize>56</pointsize>
         <bold>true</bold>
        </font>
       </property>
@@ -65,8 +66,7 @@
       <property name="font">
        <font>
         <family>Arial Black</family>
-        <pointsize>24</pointsize>
-        <weight>75</weight>
+        <pointsize>28</pointsize>
         <italic>false</italic>
         <bold>true</bold>
        </font>
@@ -80,6 +80,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
@@ -99,7 +102,6 @@
            <font>
             <family>Arial Black</family>
             <pointsize>28</pointsize>
-            <weight>75</weight>
             <italic>false</italic>
             <bold>true</bold>
            </font>
@@ -115,7 +117,6 @@
            <font>
             <family>Arial Black</family>
             <pointsize>28</pointsize>
-            <weight>75</weight>
             <italic>false</italic>
             <bold>true</bold>
            </font>
@@ -173,7 +174,6 @@
            <font>
             <family>Arial Black</family>
             <pointsize>20</pointsize>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
@@ -194,7 +194,6 @@
            <font>
             <family>Arial Black</family>
             <pointsize>20</pointsize>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
@@ -218,7 +217,6 @@
            <font>
             <family>Arial Black</family>
             <pointsize>20</pointsize>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
@@ -239,7 +237,6 @@
            <font>
             <family>Arial Black</family>
             <pointsize>20</pointsize>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
@@ -260,7 +257,6 @@
            <font>
             <family>Arial Black</family>
             <pointsize>20</pointsize>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>

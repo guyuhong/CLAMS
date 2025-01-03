@@ -56,7 +56,7 @@ class CodendStatusDlg(QDialog, ui_CodendStatusDlg.Ui_codendStatusDlg):
         self.errorIcons=parent.errorIcons
         self.errorSounds=parent.errorSounds
         self.message=parent.message
-        self.btns=[self.btn_1, self.btn_2, self.btn_3, self.btn_4, self.btn_5]
+        self.btns = [self.btn_1, self.btn_2, self.btn_3, self.btn_4, self.btn_5]
         for btn in self.btns:
             btn.clicked.connect(self.getStatus)
 
@@ -68,12 +68,23 @@ class CodendStatusDlg(QDialog, ui_CodendStatusDlg.Ui_codendStatusDlg):
     def getStatus(self):
         btn = self.sender()
         if btn.isChecked():
-            self.state_value=btn.text()
-            self.exitTimer.start(1000)
+            self.state_value = btn.text()
+            self.exitTimer.start(500)
+
 
     def closeEvent(self, event):
+        
+        #  get the current button state, if any
+        for btn in self.btns:
+            if btn.isChecked():
+                self.state_value = btn.text()
+        
+        #  don't allow
         if not self.state_value:
             self.message.setMessage(self.errorIcons[1], self.errorSounds[1],
                     "Sorry " + self.firstName + ", you need to select a codend state!", 'info')
             self.message.exec()
+            event.reject()
+        else:
+            event.accept()
 
