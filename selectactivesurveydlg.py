@@ -111,7 +111,6 @@ class SelectActiveSurveyDlg(QDialog, ui_SelectActiveSurveyDlg.Ui_selectactivesur
             return
 
         #  make sure that all stations are closed
-        query = QtSql.QSqlQuery()
         sql = ("SELECT hostname FROM workstations WHERE lower(status)='open' and active=1")
         query = self.db.dbQuery(sql)
 

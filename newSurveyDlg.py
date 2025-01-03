@@ -65,32 +65,32 @@ class newSurveyDlg(QDialog, ui_NewSurveyDlg.Ui_newSurveyDlg):
         #  populate the combo boxes
 
         #  get the list of ships from the database
-        sql = ("SELECT ship, name FROM ships WHERE active=1", self.db)
+        sql = ("SELECT ship, name FROM ships WHERE active=1")
         query = self.db.dbQuery(sql)
         for ship, name in query:
             self.shipNumbers.append(ship)
             self.cbShip.addItem(name)
 
         #  get the list of personnel from the database
-        sql = ("SELECT scientist FROM personnel", self.db)
+        sql = ("SELECT scientist FROM personnel")
         query = self.db.dbQuery(sql)
         for sciFi, in query:
             self.cbChiefSci.addItem(sciFi)
 
         #  get the list of sea areas from the database
-        sql = ("SELECT iho_sea_area FROM survey_sea_areas", self.db)
+        sql = ("SELECT iho_sea_area FROM survey_sea_areas")
         query = self.db.dbQuery(sql)
         for iho_sea_area, in query:
             self.cbSeaArea.addItem(iho_sea_area)
 
         #  get the list of regions from the database
-        sql = ("SELECT region FROM survey_regions", self.db)
+        sql = ("SELECT region FROM survey_regions")
         query = self.db.dbQuery(sql)
         for region, in query:
             self.cbRegion.addItem(region)
 
         #  get the list of regions from the database
-        sql = ("SELECT port FROM survey_ports WHERE active=1", self.db)
+        sql = ("SELECT port FROM survey_ports WHERE active=1")
         query = self.db.dbQuery(sql)
         for port, in query:
             self.cbStartPort.addItem(port)

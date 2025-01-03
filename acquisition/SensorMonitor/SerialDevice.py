@@ -194,8 +194,14 @@ class SerialDevice(QObject):
                 self.txTimer.start()
 
             except Exception as e:
-                self.SerialError.emit(self.deviceName, SerialError('Unable to open serial port for device ' +
-                       self.deviceName + '.', parent=e))
+                #  we were unable to open the serial port
+                self.SerialError.emit(self.deviceName, SerialError("Unable to open serial port " +
+                        "for device " + self.deviceName + ".", parent=e))
+                self.pollTimer = None
+                
+                #  emit the SerialPortClosed signal to ensure that we clean up
+                #  threads correctly
+                self.SerialPortClosed.emit(self.deviceName)
 
 
     @pyqtSlot(list)

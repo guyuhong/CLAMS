@@ -259,7 +259,7 @@ if __name__ == "__main__":
     import sys
     app = QtCore.QCoreApplication(sys.argv)
     #form = dbConnectionClassExample('ODBC_CONNECTION', 'DATABASE_USER', 'PASSWORD')
-    form = dbConnectionClassExample('AFSC-64', 'macebase2', 'pollock#111')
+    form = dbConnectionClassExample('ODBC-DSN', 'username', 'password')
     sys.exit(app.exec())
 
 

@@ -127,7 +127,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         #  width via a stylesheet.
         #    https://doc.qt.io/qt-6/stylesheet-examples.html#customizing-qmainwindow
         #    https://doc.qt.io/qt-6/stylesheet-examples.html
-        appStyleSheet = 'QScrollBar:vertical{width: 40px; height: 20px;}\n'
+        appStyleSheet = 'QScrollBar:vertical{width: 80px; height: 20px;}\n'
 
         #  try to load the background image. This will only work here if ImageDir is
         #  set in the .ini file. We do this so if we have an image, we can display it
@@ -164,7 +164,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
             #  display the error dialog then close the application
             QMessageBox.critical(self, "Database Login Error", "<font size = 12> Unable " +
                     "to connect to the database.  Does the clams.ini file exist? Are the " +
-                    "values in it correct?\n Error text:" + err)
+                    "values in it correct? Error text:" + str(err))
             self.close()
             return
 
@@ -269,7 +269,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                     "CLAMS will operate with generic sounds.")
         else:
             #  these 4 sounds are used to indicate errors, information, questions and ???
-            errorSoundFiles = ['Error.wav', 'Ding.wav', 'Exclamation.wav', 'Notify.wav']
+            errorSoundFiles = ['Error.wav', 'Ding.wav', 'Exclamation.wav', 'Notify.wav'] 
             for sound in errorSoundFiles:
                 soundEffect = QSoundEffect()
                 soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + sound))
@@ -504,8 +504,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
 
         #  create the CLAMSProcess window and display it
         procWindow = CLAMSprocess.CLAMSProcess(self)
-        procWindow.exec()
-
+        ok = procWindow.exec()
 
 
     def utilities(self):
@@ -536,6 +535,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         """
         #  close our connection to the database
         self.db.dbClose()
+
 
 
     def checkPath(self, thisPath, default):
@@ -676,3 +676,4 @@ if __name__ == "__main__":
 
     #  and start the application...
     app.exec()
+

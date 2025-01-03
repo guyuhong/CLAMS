@@ -457,9 +457,10 @@ class SensorMonitor(QObject):
         if self.devices[deviceName]['thread']:
             self.devices[deviceName]['thread'].quit()
 
-        #  update the thread
+        #  update the thread accounting
+        del(self.threads[self.devices[deviceName]['thread']])
         self.devices[deviceName]['thread'] = None
-
+        
         #  check if we're removing this device
         if self.devices[deviceName]['remove']:
             del self.devices[deviceName]

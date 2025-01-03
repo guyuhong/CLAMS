@@ -59,7 +59,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  set up the GUI
         super(CLAMSProcess, self).__init__(parent)
         self.setupUi(self)
-        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        #self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
         # initialize variables
         self.reloadFlag=False
@@ -76,6 +76,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         self.partitions=[]
         self.activePartition=None
         self.methotFlag=False
+        self.clEventObj = None
 
         #  set up some colors
         self.blue = QPalette()
@@ -282,7 +283,16 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
 
         #  create an instance of the sensor monitor
         self.serMonitor = SensorMonitor.SensorMonitor()
-
+        
+        #  connect the SerialDevicesStopped signal which tells us
+        #  when all acquisition threads have stopped. We make sure
+        #  we don't exit before all threads have stopped.
+        self.serMonitor.SerialDevicesStopped.connect(self.devicesClosed)
+        
+        #  connect the SerialError signal to inform the user of any
+        #  sensor errors.
+        self.serMonitor.SerialError.connect(self.serialError)
+        
         #  query the devices attached to this station
         sql = ("SELECT MEASUREMENT_SETUP.DEVICE_ID, DEVICES.DEVICE_NAME " +
                 "FROM MEASUREMENT_SETUP INNER JOIN DEVICES ON " +
@@ -346,33 +356,41 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  ports start polling. SensorMonitor will buffer data until full messages
         #  are received. Those messages are optionally parsed and then SensorMonitor
         #  emits a signal with the parsed data.
-        try:
-            #  start the sensor monitor
-            self.serMonitor.startMonitoring()
-        except Exception as e:
-            #  There was an issue with a device or devices
+        self.serMonitor.startMonitoring()
+        
+        #  If there are any errors opening ports, SensorMonitor will emit the 
+        #  serialError signal for each device with an issue
 
-            #  first get the human readable device names
-            devNames = []
-            for badDevice in e.devNames:
-                sql = ("SELECT device_name FROM devices" +
-                        " WHERE device_id=" + badDevice)
-                query = self.db.dbQuery(sql)
-                dev, = query.first()
-                devNames.append(dev)
 
-            #  construct the error text
-            if (len(devNames) == 1):
-                errText = 'Error opening device ' + devNames[0]
-            else:
-                errText = 'Error opening devices ' + ', '.join(devNames)
+    @pyqtSlot(str, object)
+    def serialError(self, deviceID, obj):
+        
+        #  There was an issue with a device
+        
+        #  first get the human readable device name
+        sql = ("SELECT device_name FROM devices" +
+                " WHERE device_id=" + deviceID)
+        query = self.db.dbQuery(sql)
+        deviceName, = query.first()
 
-            #  display a warning dialog
-            QMessageBox.warning(self, "Serial Port Error", "<font size = 14>" +
-                    errText + ". These devices will be not be enabled.")
+        #  construct the error text
+        errText = 'Error opening device ' + deviceName
 
+        #  display a warning dialog
+        QMessageBox.warning(self, "Serial Port Error", "<font size = 14>" +
+                errText + ". This device will be not be enabled.")
+        
 
     def editCodendState(self):
+
+        #  make sure there is an active partition
+        if (self.activePartition == None):
+            #  no partition selected - issue error
+            self.message.setMessage(self.errorIcons[1], self.errorSounds[1], "Sorry " +
+                    self.firstName + ", you need to select a partition for" +
+                    " this haul first!", 'info')
+            self.message.exec()
+            return
 
         #  get the existing codend status
         sql = ("SELECT parameter_value FROM event_data WHERE ship = " + self.ship +
@@ -555,6 +573,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         sql = ("SELECT workstation_id FROM workstations WHERE status='open' AND " +
                 "current_event=" + self.activeHaul)
         query = self.db.dbQuery(sql)
+
         if not query.first():
             #  we ARE the last station working on this event. We'll do some checks on the
             #  data compute some summary data that is inserted into the database
@@ -580,6 +599,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
 
         #  update the CATCH_SUMMARY table for this event - we'll update it every time
         #  a station exits to ensure that it is fully up-to-date
+
         ok, error_txt = self.updateCatchSummary()
         if not ok:
             #  let the user know there was a problem
@@ -587,15 +607,26 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                     error_txt, 'info')
             self.message.exec()
 
-        # shut down serial monitor
-        try:
-            self.serMonitor.stopMonitoring()
-        except:
-            #  we don't care if we can't close the serial ports because
-            #  we probably couldn't open them in the first place.
-            pass
+        # tell SensorMonitor to shut down
+        self.serMonitor.stopMonitoring()
 
-        event.accept()
+        #  SensorMonitor will emit the SerialDevicesStopped signal when all
+        #  network and serial connections are closed. We finish shutting down
+        #  in the SerialDevicesStopped event handler devicesClosed below.
+        self.clEventObj = event
+
+
+    def devicesClosed(self):
+        '''devicesClosed is called when the SensorMonitor emits the
+        SerialDevicesStopped signal which lets us know all acquisition
+        threads have stopped. 
+        
+        Since we have done all of the other shutdown tasks, we simply
+        call the close event's accept method.
+        
+        '''
+        if self.clEventObj:
+            self.clEventObj.accept()
 
 
     def totalHaulWeight(self):
