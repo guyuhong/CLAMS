@@ -9,8 +9,7 @@
 
 
 '''
-from PyQt4.QtCore import *
-from PyQt4 import QtSql
+from PyQt6.QtCore import *
 
 class WeightRange(QObject):
 
@@ -29,14 +28,22 @@ class WeightRange(QObject):
         QObject.__init__(self, None)
 
         #  Get the valid weight range for this species from the species table
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+" AND subcategory='"+subcategory+"' AND lower(species_parameter)='min_weight'", db)
-        if query.first():
-            self.minWeight=float(query.value(0).toString())
+        sql = ("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
+               " AND subcategory='"+subcategory+"' AND lower(species_parameter)='min_weight'")
+        query = self.db.dbQuery(sql)
+        minWeight, = query.first()
+
+        if minWeight:
+            self.minWeight=float(minWeight)
         else:
             self.minWeight=0
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+" AND subcategory='"+subcategory+"' AND lower(species_parameter)='max_weight'", db)
-        if query.first():
-            self.maxWeight=float(query.value(0).toString())
+        sql=("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
+             " AND subcategory='"+subcategory+"' AND lower(species_parameter)='max_weight'")
+        query = self.db.dbQuery(sql)
+        maxWeight, = query.first()
+
+        if maxWeight:
+            self.maxWeight=float(maxWeight)
         else:
             self.maxWeight=999
 

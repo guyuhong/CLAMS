@@ -12,8 +12,8 @@
 
 
 '''
-from PyQt4.QtCore import *
-from PyQt4 import QtSql
+from PyQt6.QtCore import *
+from PyQt6 import QtSql
 
 class LengthWeight(QObject):
 
@@ -32,22 +32,29 @@ class LengthWeight(QObject):
         QObject.__init__(self, None)
 
         #  Get the valid length weight parameters for this species from the species table
-
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+" AND subcategory='"+subcategory+"' AND lower(species_parameter)='a_param'", db)
-        if query.first():
-            self.aParm=float(query.value(0).toString())
+        sql=("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
+             " AND subcategory='"+subcategory+"' AND lower(species_parameter)='a_param'")
+        query = self.db.dbQuery(sql)
+        aParam, = query.first()
+        if aParam:
+            self.aParm=float(aParam)
         else:
             self.aParm=0
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+" AND subcategory='"+subcategory+"' AND lower(species_parameter)='b_param'", db)
-        if query.first():
-            self.bParm=float(query.value(0).toString())
+
+        sql=("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
+             " AND subcategory='"+subcategory+"' AND lower(species_parameter)='b_param'")
+        query = self.db.dbQuery(sql)
+        bParam, = query.first()
+        if bParam:
+            self.bParm=float(bParam)
         else:
             self.bParm=999
-        # get the deviation tolerance
-        query = QtSql.QSqlQuery("SELECT parameter_value FROM application_configuration WHERE lower(parameter)='lw_tolerance'", db)
-        query.first()
-        self.tolerance=float(query.value(0).toString())
 
+        # get the deviation tolerance
+        sql = "SELECT parameter_value FROM application_configuration WHERE lower(parameter)='lw_tolerance'"
+        query = self.db.dbQuery(sql)
+        lwTolerance, = query.first()
+        self.tolerance=float(lwTolerance)
 
     def validate(self, currentValue,  measurements,  values):
         '''
