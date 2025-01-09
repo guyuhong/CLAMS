@@ -6,11 +6,9 @@
 
     Validations are classes that are used by the CLAMS specimen module
     to check
-
-
 '''
-from PyQt4.QtCore import *
-from PyQt4 import QtSql
+
+from PyQt6.QtCore import *
 
 class OvaryWeightRange(QObject):
 
@@ -29,12 +27,12 @@ class OvaryWeightRange(QObject):
         QObject.__init__(self, None)
 
         #  Get the valid weight range for this species from the species table
-        query = QtSql.QSqlQuery("SELECT parameter_value FROM application_configuration WHERE lower(parameter)='maxgsi'", db)
+        sql = "SELECT parameter_value FROM application_configuration WHERE lower(parameter)='maxgsi'"
+        query = self.db.dbQuery(sql)
 
         #  extract returned results
-        query.first()
-
-        self.maxGSI=float(query.value(0).toString())
+        maxGSIVal, = query.first()
+        self.maxGSI=float(maxGSIVal)
 
     def validate(self,  currentValue,  measurements,  values):
         '''
@@ -46,7 +44,7 @@ class OvaryWeightRange(QObject):
         if fishWt==None:
             result = (False, "There's no organism weight")
             return result
-        print gonadWt, ((self.maxGSI/100)*fishWt)
+        print (gonadWt, ((self.maxGSI/100)*fishWt))
         if (gonadWt/fishWt) >  (self.maxGSI/100):# not a good value
             #  weight check failed - weight is outside valid range
             result = (False, "The GSI you've got here is "+str((gonadWt/fishWt) )+", which is more than the reference maximum. Do you want to re-enter weight? ")

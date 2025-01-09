@@ -9,8 +9,7 @@
 
 
 '''
-from PyQt4.QtCore import *
-from PyQt4 import QtSql
+from PyQt6.QtCore import *
 
 class BarcodeNumeric(QObject):
 

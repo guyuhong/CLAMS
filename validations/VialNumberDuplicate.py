@@ -9,8 +9,7 @@
 
 
 '''
-from PyQt4.QtCore import *
-from PyQt4 import QtSql
+from PyQt6.QtCore import *
 
 class VialNumberDuplicate(QObject):
 
@@ -35,10 +34,13 @@ class VialNumberDuplicate(QObject):
         '''
 
         vial_num = currentValue
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM application_configuration WHERE parameter = 'ActiveSurvey'")
-        query.first()
-        survey=query.value(0).toString()
-        query=QtSql.QSqlQuery("SELECT device_id FROM measurements WHERE measurement_type ='vial_number' AND measurement_value ='"+vial_num+"' AND survey ="+survey)
+        sql = "SELECT parameter_value FROM application_configuration WHERE parameter = 'ActiveSurvey'"
+        query = self.db.dbQuery(sql)
+        survey, = query.first()
+
+        sql = ("SELECT device_id FROM measurements WHERE measurement_type ='vial_number' AND measurement_value ="
+               +vial_num+" AND survey ="+survey)
+        query = self.db.dbQuery(sql)
         if query.first():
             #  weight check failed - weight is outside valid range
             result = (False, 'This vial number already exists in the database for this survey.  Do you want to re-enter?')

@@ -10,8 +10,7 @@
 
 '''
 
-from PyQt4.QtCore import *
-from PyQt4 import QtSql
+from PyQt6.QtCore import *
 
 class LengthRange(QObject):
 
@@ -30,14 +29,20 @@ class LengthRange(QObject):
         QObject.__init__(self, None)
 
         #  Get the valid weight range for this species from the species table
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+" AND subcategory='"+subcategory+"' AND lower(species_parameter)='min_length'", db)
-        if query.first():
-            self.minLength=float(query.value(0).toString())
+        sql = ("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
+               " AND subcategory='"+subcategory+"' AND lower(species_parameter)='min_length'")
+        query = self.db.dbQuery(sql)
+        minLength, = query.first()
+        if minLength:
+            self.minLength=float(minLength)
         else:
             self.minLength=0
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+" AND subcategory='"+subcategory+"' AND lower(species_parameter)='max_length'", db)
-        if query.first():
-            self.maxLength=float(query.value(0).toString())
+        sql = ("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
+               " AND subcategory='"+subcategory+"' AND lower(species_parameter)='max_length'")
+        query = self.db.dbQuery(sql)
+        maxLength, = query.first()
+        if maxLength:
+            self.maxLength=float(maxLength)
         else:
             self.maxLength=999
 
