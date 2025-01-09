@@ -145,7 +145,7 @@ class validationTest(QObject):
             speciesCode = 21740
             subcategory = 'None'
             currentValue = '1'
-            measureTypes = ['vialNum']
+            measureTypes = []
             values = [None]
 
             #  create a connection dialog to get connection params - by default
