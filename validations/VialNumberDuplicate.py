@@ -16,10 +16,10 @@
 """
 .. module:: VialNumberDuplicate
 
-    :synopsis: VialNumberDuplicate determines whether vial id is unique
-            given survey number and vial number. If a vial
-            number already exists, return false with an informational
-            string otherwise return true.
+    :synopsis: VialNumberDuplicate determines whether vial number is unique
+               given survey number and vial number. If a vial number already
+               exists, return false with an informational string otherwise
+               return true.
 
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
@@ -61,7 +61,13 @@ class VialNumberDuplicate(QObject):
         #  call the superclass init
         QObject.__init__(self, None)
 
-        self.db=db
+        #  store a reference to our db object
+        self.db = db
+
+        #  get the active survey ID
+        sql = "SELECT parameter_value FROM application_configuration WHERE parameter = 'ActiveSurvey'"
+        query = self.db.dbQuery(sql)
+        self.survey, = query.first()
 
 
     def validate(self,  currentValue,  measurements,  values):
@@ -79,9 +85,8 @@ class VialNumberDuplicate(QObject):
                 values - a list of the stored values of those measurements.
                     In order of the measurements.
 
-            For example, this validation is for the barcode measurement and when
-            a barcode value is measured, it will check to see if that value (as
-            currentValue) is already in the database.
+            This validation checks the current vial number against the vial
+            numbers in the database FOR THE ACTIVE SURVEY.
 
             This is a fairly simple example, but the validation can be much
             more complex (but usually don't need to be.) Also, remember that
@@ -91,26 +96,21 @@ class VialNumberDuplicate(QObject):
 
         '''
 
-        vial_num = currentValue
-        sql = "SELECT parameter_value FROM application_configuration WHERE parameter = 'ActiveSurvey'"
-        query = self.db.dbQuery(sql)
-        survey, = query.first()
-
         # Check whether vial number is unique
-        sql = ("SELECT device_id FROM measurements WHERE measurement_type ='vial_number' AND measurement_value ="
-               + vial_num + " AND survey ="+survey)
+        sql = ("SELECT device_id FROM measurements WHERE measurement_type ='vial_number' " +
+                "AND measurement_value =" + currentValue + " AND survey =" + self.survey)
         query = self.db.dbQuery(sql)
-
         val, = query.first()
         if val is not None:
             #  Vial number already exists
-            result = (False, 'This vial number already exists in the database for this survey.  Do you want to re-enter?')
-
+            result = (False, "This vial number already exists in the database for " +
+                    "this survey.  Do you want to re-enter?")
         else:
             # New vial number entered, success
             result = (True, '')
 
         return result
+
 
 '''
 The validationTest class enables testing of validations by creating a database

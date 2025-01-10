@@ -130,26 +130,26 @@ class LengthWeight(QObject):
             result = (True, '')
             return result
 
-        #  check if we have all params and they are numeric - obviously this would be
+        #  ensure that all params are numeric - obviously this would be
         #  more efficient to do this in the init but we don't have a mechanism to raise
         #  errors like this during the validation init so we're going to do it here.
         try:
             aParam = float(self.aParm)
         except:
             result = (False, "LengthWeight Validation Error. Non-numeric 'a_param' for " +
-                    "this species+subcateory.")
+                    "this species+subcateory. The validation cannot run.")
             return result
         try:
             bParam = float(self.bParm)
         except:
             result = (False, "LengthWeight Validation Error. Non-numeric 'b_param' for " +
-                    "this species+subcateory.")
+                    "this species+subcateory. The validation cannot run.")
             return result
         try:
             lwTolerance = float(self.tolerance)
         except:
             result = (False, "LengthWeight Validation Error. Non-numeric 'lw_tolerance' for " +
-                    "this species+subcateory.")
+                    "this species+subcateory. The validation cannot run.")
             return result
 
         try:

@@ -16,8 +16,12 @@
 """
 .. module:: OvaryWeightRange
 
-    :synopsis: OvaryWeightRange ensures gonad weight and fish weight fall
-            within a certain range in relation to each other.
+    :synopsis: OvaryWeightRange checks that the gonadosomatic index is
+               less than the maximum percentage configured in CLAMS.
+               The gonadosomatic index is gonadosomatic index is the
+               calculation of the gonad mass as a proportion of the total
+               body mass. It is represented by the formula:
+               GSI = [gonad weight / total tissue weight] × 100
 
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
@@ -52,21 +56,22 @@ class OvaryWeightRange(QObject):
             If you need to pass additional data to a validation, you should
             add this data to the species_data table and query it out here in
             the init method (see LengthRange.py for example.)
-
         '''
 
         #  call the superclass init
         QObject.__init__(self, None)
 
-        #  Get the valid weight range for this species from the species table
+        #  Get the maxgsi parameter. Since this value applies to all species, we
+        #  stuck it in the application_configuration table.
         sql = "SELECT parameter_value FROM application_configuration WHERE lower(parameter)='maxgsi'"
         query = db.dbQuery(sql)
 
         #  extract returned results
         maxGSIVal, = query.first()
-        self.maxGSI=float(maxGSIVal)
+        self.maxGSI = maxGSIVal
 
-    def validate(self,  currentValue,  measurements,  values):
+
+    def validate(self, currentValue, measurements, values):
         '''
             The validate method is called when a measurement is made for a specific
             measurement type. Each measurement can have from 0-N validations. When
@@ -81,9 +86,10 @@ class OvaryWeightRange(QObject):
                 values - a list of the stored values of those measurements.
                     In order of the measurements.
 
-            For example, this validation is for the barcode measurement and when
-            a barcode value is measured, it will check to see if that value (as
-            currentValue) is already in the database.
+            This validation checks if the gonad weight is less than the max
+            weight computed as a percentage of the total specimen weight. It is
+            a fairly crude check, but still valuable to ensure wildly inaccurate
+            measurements.
 
             This is a fairly simple example, but the validation can be much
             more complex (but usually don't need to be.) Also, remember that
@@ -93,16 +99,39 @@ class OvaryWeightRange(QObject):
 
         '''
 
-        gonadWt = float(currentValue)
-        fishWt = float(values[measurements.index('organism_weight')])
-        if fishWt==None:
-            result = (False, "There's no organism weight")
+        #  ensure that the maxGSI value is numeric
+        try:
+            maxGSIVal = float(self.maxGSI)
+        except:
+            result = (False, "OvaryWeightRange Validation Error. Non-numeric 'maxGSI' specified " +
+                    "in the application_configuration table. The validation cannot run.")
             return result
-        print (gonadWt, ((self.maxGSI/100)*fishWt))
-        if (gonadWt/fishWt) >  (self.maxGSI/100):# not a good value
-            #  weight check failed - weight is outside valid range
-            result = (False, "The GSI you've got here is "+str((gonadWt/fishWt) )+", which is more than the reference maximum. Do you want to re-enter weight? ")
 
+        #  ensure that our gonad weight is numeric
+        try:
+            gonadWt = float(currentValue)
+        except:
+            result = (False, "Non-numeric gonad weight recorded!?! You should re-weigh your gonad.")
+            return result
+
+        #  get the measured specimen weight and ensure it is numeric
+        fishWt = values[measurements.index('organism_weight')]
+        if fishWt is None:
+            result = (False, "There's no specimen weight! OvaryWeightRange validation cannot run.")
+            return result
+        try:
+            fishWt = float(fishWt)
+        except:
+            result = (False, "The specimen has a non-numeric weight. OvaryWeightRange validation cannot run.")
+            return result
+
+        #  finally, check that the gonad weight, as a percentage of the total specimen weight, is
+        #  less than the max GSI value
+        if (gonadWt / fishWt) > (maxGSIVal / 100.0):
+            #  weight check failed - weight is outside valid range
+            result = (False, "The GSI you've got here is " + str((gonadWt / fishWt) * 100) +
+                    ", which is more than the configured maximum of " + str(maxGSIVal) +
+                    ". Do you want to re-enter your gonad weight?")
         else:
             #  weight check succeeded - weight is o.k.
             result = (True, '')

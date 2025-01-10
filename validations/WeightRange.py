@@ -18,8 +18,8 @@
 
     :synopsis: WeightRange is a validation that queries the
                database with species code and subcategory to get the
-               min and max weight values. Returns false if the weight
-               falls outside the accepted range.
+               min and max weight values. Returns false if the measured
+               weight falls outside those min/max values.
 
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
@@ -37,6 +37,7 @@
 |       Mike Levine   <mike.levine@noaa.gov>
 |       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
 """
+
 from PyQt6.QtCore import *
 
 class WeightRange(QObject):
@@ -60,29 +61,27 @@ class WeightRange(QObject):
         #  call the superclass init
         QObject.__init__(self, None)
 
-        #  Get the valid weight range for this species from the species table
-        sql = ("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
-               " AND subcategory='"+subcategory+"' AND lower(species_parameter)='min_weight'")
+        #  Get the valid weight range for this species from the species_data table
+        sql = ("SELECT parameter_value FROM species_data WHERE species_code=" + speciesCode +
+               " AND subcategory='" + subcategory + "' AND lower(species_parameter)='min_weight'")
         query = db.dbQuery(sql)
         minWeight, = query.first()
-
         if minWeight:
-            self.minWeight=float(minWeight)
+            self.minWeight = minWeight
         else:
-            self.minWeight=0
-        sql=("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
-             " AND subcategory='"+subcategory+"' AND lower(species_parameter)='max_weight'")
+            self.minWeight = 0
+
+        sql=("SELECT parameter_value FROM species_data WHERE species_code=" + speciesCode +
+             " AND subcategory='" + subcategory + "' AND lower(species_parameter)='max_weight'")
         query = db.dbQuery(sql)
         maxWeight, = query.first()
-
         if maxWeight:
-            self.maxWeight=float(maxWeight)
+            self.maxWeight = maxWeight
         else:
-            self.maxWeight=999
+            self.maxWeight = 9999
 
 
-
-    def validate(self,  currentValue,  measurements,  values):
+    def validate(self, currentValue, measurements, values):
         '''
             The validate method is called when a measurement is made for a specific
             measurement type. Each measurement can have from 0-N validations. When
@@ -97,29 +96,48 @@ class WeightRange(QObject):
                 values - a list of the stored values of those measurements.
                     In order of the measurements.
 
-            For example, this validation is for the barcode measurement and when
-            a barcode value is measured, it will check to see if that value (as
-            currentValue) is already in the database.
+            This validation checks that the measured weight falls within the
+            range of min and max weights for this species+subcat
 
             This is a fairly simple example, but the validation can be much
             more complex (but usually don't need to be.) Also, remember that
             these run each time a measurement configured for the validation
             runs so you don't want them to take too long to execute as it
             will slow data collection.
-
         '''
 
-        thisWeight = float(currentValue)
+        #  ensure that the min/max weights in the database for this species+subcat are numeric
+        try:
+            minWeight = float(self.minWeight)
+        except:
+            result = (False, "WeightRange Validation Error. Non-numeric 'min_weight' for " +
+                    "this species+subcateory. The validation cannot run.")
+            return result
+        try:
+            maxWeight = float(self.maxWeight)
+        except:
+            result = (False, "LengthWeight Validation Error. Non-numeric 'max_weight' for " +
+                    "this species+subcateory. The validation cannot run.")
+            return result
 
-        if (thisWeight < self.minWeight) or (thisWeight > self.maxWeight):
+        #  ensure that the just measured weight is numeric
+        try:
+            thisWeight = float(currentValue)
+        except:
+            result = (False, "Non-numeric weight recorded!?! You should re-weigh your specimen.")
+            return result
+
+        #  now check that the weight in in range
+        if (thisWeight < minWeight) or (thisWeight > maxWeight):
             #  weight check failed - weight is outside valid range
-            result = (False, 'The weight is out of range for this species. Do you want to re-enter weight?')
-
+            result = (False, "The weight is out of range for this species. " +
+                    "Do you want to re-enter weight?")
         else:
             #  weight check succeeded - weight is o.k.
             result = (True, '')
 
         return result
+
 
 '''
 The validationTest class enables testing of validations by creating a database
