@@ -138,7 +138,7 @@ class validationTest(QObject):
             #  create a connection dialog to get connection params - by default
             #  this will create a dbConnection object and store it in the "db"
             #  attribute.
-            conenctionDialog = connectdlg.ConnectDlg('AFSCD1', 'clamsbase2', '27@MonkeyButler')
+            conenctionDialog = connectdlg.ConnectDlg(None, None, None)
             ok = conenctionDialog.exec()
 
             #  if we've connected to the database, create and run the validation
