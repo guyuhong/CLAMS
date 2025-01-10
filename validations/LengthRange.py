@@ -16,10 +16,10 @@
 """
 .. module:: LengthRange
 
-    :synopsis: LengthRange is a validation that queries the
-               database using species code and subcategory to get the
-               min and max length values. Returns false if the length
-               falls outside the accepted range.
+    :synopsis: LengthRange is a validation that queries the database using
+               species code and subcategory to get the min and max length values
+               for that species+subcategory. Returns false if the length falls
+               outside the accepted range.
 
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
@@ -55,40 +55,71 @@ class LengthRange(QObject):
             If you need to pass additional data to a validation, you should
             add this data to the species_data table and query it out here in
             the init method (see LengthRange.py for example.)
-
         '''
 
         #  call the superclass init
         QObject.__init__(self, None)
 
-        #  Get the valid weight range for this species from the species table
+        #  Get the minimum length for this species from the species_data table
         sql = ("SELECT parameter_value FROM species_data WHERE species_code=" + speciesCode +
                " AND subcategory='" + subcategory + "' AND lower(species_parameter)='min_length'")
         query = db.dbQuery(sql)
         minLength, = query.first()
         if minLength:
-            self.minLength=float(minLength)
+            try:
+                self.minLength = float(minLength)
+            except:
+                self.minLength = 0
         else:
-            self.minLength=0
+            self.minLength = 0
 
+        #  Get the maximum length for this species from the species_data table
         sql = ("SELECT parameter_value FROM species_data WHERE species_code="+ speciesCode +
                " AND subcategory='"+subcategory+"' AND lower(species_parameter)='max_length'")
         query = db.dbQuery(sql)
         maxLength, = query.first()
         if maxLength:
-            self.maxLength=float(maxLength)
+            try:
+                self.maxLength = float(maxLength)
+            except:
+                self.maxLength = 9999
         else:
-            self.maxLength=999
+            self.maxLength = 9999
+
 
     def validate(self, currentValue, measureTypes, values):
         '''
-            The validate method is called when a length is entered.
+            The validate method is called when a measurement is made for a specific
+            measurement type. Each measurement can have from 0-N validations. When
+            a specific measurement is made, say "barcode", all validations
+            assigned to the barcode measurement will have their validate methods
+            called. Each one should verify that the currentValue is valid based
+            on the logic of each particular validation.
 
                 currentValue - the just measured value
+                measurements - a list of the measurement types for this
+                    protocol, in order.
+                values - a list of the stored values of those measurements.
+                    In order of the measurements.
 
+            This validation checks if the measured length is within the range
+            of acceptable lengths for this species+subcategory.
+
+            This is a fairly simple example, but the validation can be much
+            more complex (but usually don't need to be.) Also, remember that
+            these run each time a measurement configured for the validation
+            runs so you don't want them to take too long to execute as it
+            will slow data collection.
         '''
 
-        thisLength = float(currentValue)
+        #  make sure the length is numeric
+        try:
+            thisLength = float(currentValue)
+        except:
+            result = (False, 'Non-numeric length value collected. Do you want to re-enter length?')
+            return result
+
+        #  check if the length is within the valid range
         if (thisLength < self.minLength) or (thisLength > self.maxLength):
             #  Length check failed - Length is outside valid range
             result = (False, 'The length is out of range for this species. Do you want to re-enter length?')

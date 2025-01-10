@@ -16,8 +16,10 @@
 """
 .. module:: LengthWeight
 
-    :synopsis: LengthWeight checks when given a certain length, the weight
-                falls within a certain range.
+    :synopsis: LengthWeight checks that the measured weight falls within
+               the expected range given the previously recorded length
+               using the length weight regression for the specified
+               species+subcategory
 
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
@@ -58,32 +60,40 @@ class LengthWeight(QObject):
         #  call the superclass init
         QObject.__init__(self, None)
 
+        #  get the length to weight regression parameters for this species+subcat from
+        #  the species_data table
+
         #  Get the valid length weight parameters for this species from the species table
         sql=("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
              " AND subcategory='"+subcategory+"' AND lower(species_parameter)='a_param'")
         query = db.dbQuery(sql)
         aParam, = query.first()
         if aParam:
-            self.aParm=float(aParam)
+            #  don't convert to float here, we'll do that in the validate method so
+            #  it is easier to report a parameter issue to the user
+            self.aParm = aParam
         else:
-            self.aParm=0
+            self.aParm = None
 
         sql=("SELECT parameter_value FROM species_data WHERE species_code="+speciesCode+
              " AND subcategory='"+subcategory+"' AND lower(species_parameter)='b_param'")
         query = db.dbQuery(sql)
         bParam, = query.first()
         if bParam:
-            self.bParm=float(bParam)
+            #  don't convert to float here, we'll do that in the validate method so
+            #  it is easier to report a parameter issue to the user
+            self.bParm = bParam
         else:
-            self.bParm=999
+            self.bParm = None
 
-        # get the deviation tolerance
+        # get the allowable deviation tolerance
         sql = "SELECT parameter_value FROM application_configuration WHERE lower(parameter)='lw_tolerance'"
         query = db.dbQuery(sql)
         lwTolerance, = query.first()
-
-        self.tolerance=float(lwTolerance)
-
+        if lwTolerance:
+            self.tolerance = lwTolerance
+        else:
+            self.tolerance = None
 
 
     def validate(self, currentValue,  measurements,  values):
@@ -101,9 +111,11 @@ class LengthWeight(QObject):
                 values - a list of the stored values of those measurements.
                     In order of the measurements.
 
-            For example, this validation is for the barcode measurement and when
-            a barcode value is measured, it will check to see if that value (as
-            currentValue) is already in the database.
+            This validation checks that a measured weight falls within the
+            expected range given a previously measured length and the length
+            weight regression for the species+subcat. For this validation
+            to work, the length measurement must come before the weight
+            measurement in the protocol.
 
             This is a fairly simple example, but the validation can be much
             more complex (but usually don't need to be.) Also, remember that
@@ -112,21 +124,64 @@ class LengthWeight(QObject):
             will slow data collection.
 
         '''
-
-        weight = float(currentValue)
-        length = float(values[measurements.index('length')])
-        if length==None:
-            result = (False, "There's no length")
-            return result
-        if self.aParm<0.1:# theres no lw parameters for this species
+        #  check if we don't have any regression params
+        if self.aParm is None and self.bParm is None and self.tolerance is None:
+            #  there are no lw regression parameters for this species+subcat so bail
             result = (True, '')
             return result
-        calcWt=(length**self.aParm)*self.bParm
-        errorDev=(weight/calcWt-1)*100
-        if abs(errorDev)>self.tolerance:# bad weight
-           #  length weight check failed - weight is outside valid range
-            result = (False, 'This weight is '+str(round((errorDev+100), 0))+' % of the expected weight. Do you want to re-enter the weight?')
 
+        #  check if we have all params and they are numeric - obviously this would be
+        #  more efficient to do this in the init but we don't have a mechanism to raise
+        #  errors like this during the validation init so we're going to do it here.
+        try:
+            aParam = float(self.aParm)
+        except:
+            result = (False, "LengthWeight Validation Error. Non-numeric 'a_param' for " +
+                    "this species+subcateory.")
+            return result
+        try:
+            bParam = float(self.bParm)
+        except:
+            result = (False, "LengthWeight Validation Error. Non-numeric 'b_param' for " +
+                    "this species+subcateory.")
+            return result
+        try:
+            lwTolerance = float(self.tolerance)
+        except:
+            result = (False, "LengthWeight Validation Error. Non-numeric 'lw_tolerance' for " +
+                    "this species+subcateory.")
+            return result
+
+        try:
+            weight = float(currentValue)
+        except:
+            result = (False, "Non-numeric weight recorded!?! You should re-weigh your specimen.")
+            return result
+
+        #  TODO: make sure that internally all length measurements (e.g. fork_length, total_length,
+        #        bell_diameter, etc.) are passed in the measurements dict as "length". Initially "length"
+        #        measurements were not specific and were simply called "length" but that was changed
+        #        and I don't know if a generic 'length' is currently used or the specific length type
+        #        is passed in the measurements dict. If the specific type is passed, this code needs
+        #        to be updated to match
+
+        #  get the measured length
+        length = float(values[measurements.index('length')])
+        if length == None:
+            result = (False, "There's no length recorded yet! LengthWeight validation cannot run.")
+            return result
+
+        #  calculate the theoretical weight based on the length and LW regression
+        calcWt = (length ** aParam) * bParam
+
+        #  compute the allowable deviation
+        errorDev = (weight / calcWt - 1) * 100
+
+        #  ensure that the weight is within tolerance
+        if abs(errorDev) > lwTolerance:
+           #  length weight check failed - weight is outside valid range
+            result = (False, 'This weight is ' + str(round((errorDev+100), 0)) +
+                    ' % of the expected weight. Do you want to re-enter the weight?')
         else:
             #  length weight check succeeded - weight is o.k.
             result = (True, '')

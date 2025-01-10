@@ -44,7 +44,15 @@ class BarcodeNumeric(QObject):
         '''
             The init methods of CLAMS validations are run whenever a new protocol
             or species is selected in the specimen module. Any setup that the
-            validation requires should be done here. The two input arguments are:
+            validation requires should be done here. The three input arguments are:
+
+                db - a reference to the active dbConnection class object
+                speciesCode - the species code of the current specimen
+                subcategory - the subcategory of the current specimen
+
+            If you need to pass additional data to a validation, you should
+            add this data to the species_data table and query it out here in
+            the init method (see LengthRange.py for example.)
         '''
 
         #  call the superclass init
@@ -60,11 +68,16 @@ class BarcodeNumeric(QObject):
             called. Each one should verify that the currentValue is valid based
             on the logic of each particular validation.
 
-                currentValue - scanned barcode
+                currentValue - the just measured value
+                measurements - a list of the measurement types for this
+                    protocol, in order.
+                values - a list of the stored values of those measurements.
+                    In order of the measurements.
 
-            For example, this validation is for the barcode numeric and when
-            a barcode value is scanned, it will check to see if that value (as
-            currentValue) is an int value.
+            This validation tests whether the barcode value is numeric and is
+            used in cases where numeric barcodes are being scanned and we want
+            to ensure there is not a scanning error that introduced non-numeric
+            characters in the output.
 
             This is a fairly simple example, but the validation can be much
             more complex (but usually don't need to be.) Also, remember that
@@ -86,7 +99,7 @@ class BarcodeNumeric(QObject):
         return result
 
 '''
-The validationTest class enables testing of validations by creating an instance of the 
+The validationTest class enables testing of validations by creating an instance of the
 validation object, and then executing its validate method.
 
 This class will need to be customized a bit for each individual validation.
