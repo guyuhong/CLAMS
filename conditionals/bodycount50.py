@@ -37,7 +37,6 @@
 """
 
 from PyQt6.QtCore import *
-import unittest
 class BodyCount50(QObject):
 
     def __init__(self, db):
