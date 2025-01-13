@@ -120,7 +120,7 @@ class UtilitiesDlg(QDialog, ui_UtilitiesDlg.Ui_utilitiesdlg):
             Hauls.append(haul)
             EQTimes.append(haulData)
 
-        hlDialog = haulseldialog.HaulWtSelDlg(Hauls, EQTimes, self.db, self)
+        hlDialog = haulseldialog.HaulSelDialog(Hauls, EQTimes, self.db, self)
         hlDialog.editBtn.setText('Load Stream Data')
         hlDialog.notBtn.hide()
         hlDialog.haulTab.setCurrentIndex(1)
