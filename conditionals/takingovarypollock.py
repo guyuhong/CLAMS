@@ -109,9 +109,8 @@ class TakingOvaryPollock(QObject):
         return result
 
 '''
-The conditionalTest class enables testing of conditionals by creating a database
-connection, creating an instance of the conditional object, and then executing its
-evaluate method.
+The conditionalTest class enables testing of conditionals by creating an 
+instance of the conditional object, and then executing its evaluate method.
 
 This class will need to be customized a bit for each individual validation.
 '''

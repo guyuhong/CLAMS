@@ -108,7 +108,7 @@ class LengthSexMaturity(QObject):
         return result
 
 '''
-The conditionalTest class enables testing of conditionals by creating a database
+The conditionalTest class enables testing of conditionals by mocking a database
 connection, creating an instance of the conditional object, and then executing its
 evaluate method.
 
