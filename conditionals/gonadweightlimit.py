@@ -120,29 +120,29 @@ This class will need to be customized a bit for each individual validation.
 '''
 class conditionalTest(unittest.TestCase):
     db = None
+    gonadWeightLimit = GonadWeightLimit(db)
 
     measurements = ['sex', 'maturity', 'ovary_taken', 'liver_weight', 'gonad_weight']
-    results = [1, 2, 3, 4, 5]
 
     def testMale(self):
-        gonadWeightLimit = GonadWeightLimit(self.db)
         values = ['male', 'asdf']
+        results = [1, 2, 3, 4, 5]
 
-        ok = gonadWeightLimit.evaluate(self.measurements, values, self.results)
+        ok = self.gonadWeightLimit.evaluate(self.measurements, values, results)
         self.assertEqual([1, 2, False, False, False], ok)
 
     def testFemaleImmature(self):
-        gonadWeightLimit = GonadWeightLimit(self.db)
         values = ['female', 'Immature']
+        results = [1, 2, 3, 4, 5]
 
-        ok = gonadWeightLimit.evaluate(self.measurements, values, self.results)
-        self.assertEqual([1, 2, 3, 4, False], ok)
+        ok = self.gonadWeightLimit.evaluate(self.measurements, values, results)
+        self.assertEqual([1, 2, 3, 4, 5], ok)
 
     def testFemale(self):
-        gonadWeightLimit = GonadWeightLimit(self.db)
         values = ['female', 'asdf']
+        results = [1, 2, 3, 4, 5]
 
-        ok = gonadWeightLimit.evaluate(self.measurements, values, self.results)
+        ok = self.gonadWeightLimit.evaluate(self.measurements, values, results)
         self.assertEqual([1, 2, 3, 4, False], ok)
 
 if __name__ == '__main__':
