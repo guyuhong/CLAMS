@@ -1,16 +1,48 @@
+# coding=utf-8
 
+#     National Oceanic and Atmospheric Administration (NOAA)
+#     Alaskan Fisheries Science Center (AFSC)
+#     Resource Assessment and Conservation Engineering (RACE)
+#     Midwater Assessment and Conservation Engineering (MACE)
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4 import QtSql
-from ui.xga import ui_UtilitiesDlg
-import streamloaddlg
+#  THIS SOFTWARE AND ITS DOCUMENTATION ARE CONSIDERED TO BE IN THE PUBLIC DOMAIN
+#  AND THUS ARE AVAILABLE FOR UNRESTRICTED PUBLIC USE. THEY ARE FURNISHED "AS
+#  IS."  THE AUTHORS, THE UNITED STATES GOVERNMENT, ITS INSTRUMENTALITIES,
+#  OFFICERS, EMPLOYEES, AND AGENTS MAKE NO WARRANTY, EXPRESS OR IMPLIED,
+#  AS TO THE USEFULNESS OF THE SOFTWARE AND DOCUMENTATION FOR ANY PURPOSE.
+#  THEY ASSUME NO RESPONSIBILITY (1) FOR THE USE OF THE SOFTWARE AND
+#  DOCUMENTATION; OR (2) TO PROVIDE TECHNICAL SUPPORT TO USERS.
+
+"""
+    :module:: UtilitiesDlg
+
+    :synopsis: UtilitiesDlgvis launched when someone clicks the ""Utilities""
+               button on the main screen. Most of the utilities are out of date
+               and 2 of the 3 buttons are disabled."
+
+| Developed by:  Rick Towler   <rick.towler@noaa.gov>
+|                Kresimir Williams   <kresimir.williams@noaa.gov>
+| National Oceanic and Atmospheric Administration (NOAA)
+| National Marine Fisheries Service (NMFS)
+| Alaska Fisheries Science Center (AFSC)
+| Midwater Assesment and Conservation Engineering Group (MACE)
+|
+| Author:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+| Maintained by:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+|       Mike Levine   <mike.levine@noaa.gov>
+|       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
+        Melina Shak <melina.shak@noaa.gov>
+"""
+
+from PyQt6 import QtSql
+from PyQt6.QtWidgets import QDialog, QApplication
 import devicesetupdlg
-#import shutil
-#import CLAMSedit
-#import eventseldlg
-#import fscsload
-
+from deprecated import streamloaddlg
+from ui import ui_UtilitiesDlg
 
 class UtilitiesDlg(QDialog, ui_UtilitiesDlg.Ui_utilitiesdlg):
 
@@ -26,9 +58,9 @@ class UtilitiesDlg(QDialog, ui_UtilitiesDlg.Ui_utilitiesdlg):
 
         #  set up signals
         #self.connect(self.exportFSCSBtn, SIGNAL("clicked()"), self.createFSCSfiles)
-        self.connect(self.loadStreamBtn, SIGNAL("clicked()"), self.loadStreamData)
-        self.connect(self.setupBtn, SIGNAL("clicked()"), self.setupDevices)
-        self.connect(self.doneBtn, SIGNAL("clicked()"), self.doneClicked)
+        self.loadStreamBtn.clicked.connect(self.loadStreamData)
+        self.setupBtn.clicked.connect(self.setupDevices)
+        self.doneBtn.clicked.connect(self.doneClicked)
         
         self.exportFSCSBtn.setEnabled(False)
         self.loadStreamBtn.setEnabled(False)
@@ -74,19 +106,21 @@ class UtilitiesDlg(QDialog, ui_UtilitiesDlg.Ui_utilitiesdlg):
         '''
 
         #  get the Haul
-        query = QtSql.QSqlQuery("SELECT HAUL.HAUL, HAUL_DATA.PARAMETER_VALUE FROM HAUL, " +
+        sql = ("SELECT HAUL.HAUL, HAUL_DATA.PARAMETER_VALUE FROM HAUL, " +
                                 "HAUL_DATA  WHERE HAUL_DATA.SHIP=HAUL.SHIP and HAUL_DATA.SURVEY=HAUL.SURVEY " +
                                 "and HAUL_DATA.HAUL=HAUL.HAUL and " +
                                 "HAUL_DATA.SHIP = " + self.ship + " and " +
                                 "HAUL_DATA.SURVEY = " + self.survey + " and " +
                                 "HAUL_DATA.HAUL_PARAMETER='Haulback' and partition in ('Codend','Codend_1')")
+
+        query = self.db.dbQuery(sql)
         Hauls = []
         EQTimes = []
-        while query.next():
-            Hauls.append(query.value(0).toString())
-            EQTimes.append(query.value(1).toString())
+        for haul, haulData in query:
+            Hauls.append(haul)
+            EQTimes.append(haulData)
 
-        hlDialog = haulseldialog.HaulSelDialog(Hauls, EQTimes, self.db, self)
+        hlDialog = haulseldialog.HaulWtSelDlg(Hauls, EQTimes, self.db, self)
         hlDialog.editBtn.setText('Load Stream Data')
         hlDialog.notBtn.hide()
         hlDialog.haulTab.setCurrentIndex(1)

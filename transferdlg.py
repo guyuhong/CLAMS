@@ -1,12 +1,49 @@
+# coding=utf-8
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from ui.xga import  ui_TransferDlg
+#     National Oceanic and Atmospheric Administration (NOAA)
+#     Alaskan Fisheries Science Center (AFSC)
+#     Resource Assessment and Conservation Engineering (RACE)
+#     Midwater Assessment and Conservation Engineering (MACE)
+
+#  THIS SOFTWARE AND ITS DOCUMENTATION ARE CONSIDERED TO BE IN THE PUBLIC DOMAIN
+#  AND THUS ARE AVAILABLE FOR UNRESTRICTED PUBLIC USE. THEY ARE FURNISHED "AS
+#  IS."  THE AUTHORS, THE UNITED STATES GOVERNMENT, ITS INSTRUMENTALITIES,
+#  OFFICERS, EMPLOYEES, AND AGENTS MAKE NO WARRANTY, EXPRESS OR IMPLIED,
+#  AS TO THE USEFULNESS OF THE SOFTWARE AND DOCUMENTATION FOR ANY PURPOSE.
+#  THEY ASSUME NO RESPONSIBILITY (1) FOR THE USE OF THE SOFTWARE AND
+#  DOCUMENTATION; OR (2) TO PROVIDE TECHNICAL SUPPORT TO USERS.
+
+"""
+    :module:: TransferDlg
+
+    :synopsis: TransferDlg presented when the user selects
+               ""Transfer Weight"" in the Catch module. This is used
+               to transfer weights and counts between baskets and is
+               used to fix mistakes when weighing baskets.
+
+| Developed by:  Rick Towler   <rick.towler@noaa.gov>
+|                Kresimir Williams   <kresimir.williams@noaa.gov>
+| National Oceanic and Atmospheric Administration (NOAA)
+| National Marine Fisheries Service (NMFS)
+| Alaska Fisheries Science Center (AFSC)
+| Midwater Assesment and Conservation Engineering Group (MACE)
+|
+| Author:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+| Maintained by:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+|       Mike Levine   <mike.levine@noaa.gov>
+|       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
+        Melina Shak <melina.shak@noaa.gov>
+"""
+
+from PyQt6.QtWidgets import QDialog
 import numpad
 import messagedlg
-from PyQt4 import QtSql
 import typeseldialog
-
+from ui import ui_TransferDlg
 
 class TransferDlg(QDialog, ui_TransferDlg.Ui_transferDlg):
     def __init__(self, parent=None):
@@ -36,30 +73,32 @@ class TransferDlg(QDialog, ui_TransferDlg.Ui_transferDlg):
 
         # populate lists
         self.sampleIds={}
-        query=QtSql.QSqlQuery("SELECT samples.sample_id, species.common_name, samples.parent_sample, samples.subcategory FROM samples, species WHERE "+
+        sql = ("SELECT samples.sample_id, species.common_name, samples.parent_sample, samples.subcategory FROM samples, species WHERE "+
         "samples.species_code=species.species_code AND samples.ship="+self.ship+" AND samples.survey="+
         self.survey+" AND samples.event_id="+self.activeHaul+" AND samples.partition='"+self.activePartition+"' AND samples.species_code <>0")
-        while query.next():
-            if query.value(3).toString()<>'None':
-                species_tag=query.value(1).toString()+'-'+query.value(3).toString()
+        query = self.db.dbQuery(sql)
+
+        for id, commonName, parentSample, subCategory in query:
+            if subCategory is not None:
+                species_tag=commonName+'-'+subCategory
             else:
-                species_tag=query.value(1).toString()
+                species_tag=commonName
             self.fromSampleSpc.addItem(species_tag)
-            self.sampleIds.update({species_tag:query.value(0).toString()})
+            self.sampleIds.update({species_tag:id})
             self.toSampleSpc.addItem(species_tag)
 
         self.fromSampleSpc.setCurrentIndex(-1)
         self.toSampleSpc.setCurrentIndex(-1)
 
-        self.connect(self.cancelBtn, SIGNAL("clicked()"),self.bail)
-        self.connect(self.okBtn, SIGNAL("clicked()"),self.bail)
-        self.connect(self.getWtBtn, SIGNAL("clicked()"),self.getWeight)
-        self.connect(self.getCntBtn, SIGNAL("clicked()"),self.getCount)
-        self.connect(self.fromSampleSpc, SIGNAL("activated(int)"), self.getSampleList)
-        self.connect(self.toSampleSpc, SIGNAL("activated(int)"), self.getSampleList)
-        self.connect(self.fromBasketType, SIGNAL("activated(int)"), self.getOK)
-        self.connect(self.toBasketType, SIGNAL("activated(int)"), self.getOK)
-        self.connect(self.serMonitor, SIGNAL("SerialDataReceived"), self.getAuto)
+        self.cancelBtn.clicked.connect(self.bail)
+        self.okBtn.clicked.connect(self.bail)
+        self.getWtBtn.clicked.connect(self.getWeight)
+        self.getCntBtn.clicked.connect(self.getCount)
+        self.fromSampleSpc.activated[int].connect(self.getSampleList)
+        self.toSampleSpc.activated[int].connect(self.getSampleList)
+        self.fromBasketType.activated[int].connect(self.getOK)
+        self.toBasketType.activated[int].connect(self.getOK)
+        self.serMonitor.SerialDataReceived.connect(self.getAuto)
 
     def getWeight(self):
         self.numpad.msgLabel.setText("Enter Weight to Transfer")
@@ -91,21 +130,27 @@ class TransferDlg(QDialog, ui_TransferDlg.Ui_transferDlg):
             self.fromSampleKey=self.sampleIds[self.fromSampleSpc.currentText()]
             self.fromBasketType.setEnabled(True)
             self.fromBasketType.clear()
-            query=QtSql.QSqlQuery("  SELECT baskets.basket_type FROM baskets WHERE baskets.ship = "+self.ship+" AND baskets.survey="+self.survey+" AND baskets.event_id="+self.activeHaul+" AND baskets.sample_id="+
+
+            sql = ("  SELECT baskets.basket_type FROM baskets WHERE baskets.ship = "+self.ship+" AND baskets.survey="+self.survey+" AND baskets.event_id="+self.activeHaul+" AND baskets.sample_id="+
                                   self.fromSampleKey+" GROUP BY baskets.basket_type")
-            while query.next():
-                self.fromBasketType.addItem(query.value(0).toString())
+            query = self.db.dbQuery(sql)
+
+            for basketType in query:
+                self.fromBasketType.addItem(basketType)
                 self.fromBasketType.setCurrentIndex(-1)
         else:
             self.toSpc=str(self.toSampleSpc.currentText())
             self.toSampleKey=self.sampleIds[self.toSampleSpc.currentText()]
             self.toBasketType.setEnabled(True)
             self.toBasketType.clear()
-            query=QtSql.QSqlQuery("SELECT gear_options.basket_type FROM gear_options INNER JOIN events ON gear_options.gear=events.gear "+
+
+            sql = ("SELECT gear_options.basket_type FROM gear_options INNER JOIN events ON gear_options.gear=events.gear "+
             "WHERE events.ship="+self.ship+" AND events.survey="+self.survey+" AND events.event_id="+self.activeHaul+" AND gear_options.basket_type "+
             "is not NULL ORDER BY gear_options.basket_type")
-            while query.next():
-                self.toBasketType.addItem(query.value(0).toString())
+            query = self.db.dbQuery(sql)
+
+            for basketType in query:
+                self.toBasketType.addItem(basketType)
                 self.toBasketType.setCurrentIndex(-1)
 
 
@@ -126,11 +171,12 @@ class TransferDlg(QDialog, ui_TransferDlg.Ui_transferDlg):
                 self.message.exec_()
                 return
             # check weight
-            query=QtSql.QSqlQuery("  SELECT sum(baskets.weight) FROM baskets WHERE baskets.ship = "+self.ship+" AND baskets.survey="+
+            sql = ("  SELECT sum(baskets.weight) FROM baskets WHERE baskets.ship = "+self.ship+" AND baskets.survey="+
                                   self.survey+" AND baskets.event_id="+self.activeHaul+" AND baskets.sample_id = "+self.fromSampleKey+
                                     " AND baskets.basket_type ='"+self.fromType+"'")
-            query.first()
-            fullWeight=float(str(query.value(0).toString()))
+            query = self.db.dbQuery(sql)
+            wt, = query.first()
+            fullWeight=float(wt)
             if (fullWeight-self.transWeight)<0: # the transfer is more than the total
                 self.message.setMessage(self.errorIcons[1],self.errorSounds[1],"Transfer weight exceeds original sample weight, can't do...", 'info')
                 return
@@ -139,11 +185,12 @@ class TransferDlg(QDialog, ui_TransferDlg.Ui_transferDlg):
                 #  only verify count if source and destination are both count sample types
                 #  (subsample will not have a count at this time so you can't verify)
                 if self.fromType== 'Count':
-                    query=QtSql.QSqlQuery("SELECT sum(baskets.count) FROM baskets WHERE baskets.ship = "+self.ship+" AND baskets.survey="+self.survey+
+                    sql = ("SELECT sum(baskets.count) FROM baskets WHERE baskets.ship = "+self.ship+" AND baskets.survey="+self.survey+
                     " AND baskets.event_id="+self.activeHaul+" AND baskets.sample_id = "+self.fromSampleKey+
                     " AND baskets.basket_type ='Count'")
-                    query.first()
-                    fullCount=float(str(query.value(0).toString()))
+                    query = self.db.dbQuery(sql)
+                    cnt, = query.first()
+                    fullCount=float(cnt)
                     if (fullCount-self.transCount)<0:
                         self.message.setMessage(self.errorIcons[1],self.errorSounds[1],"Transfer count exceeds original sample weight, You're asking the impossible...", 'info')
                         return

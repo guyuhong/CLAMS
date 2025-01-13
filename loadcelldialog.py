@@ -9,12 +9,11 @@
  #ANY WARRANTY; without even the implied
 # warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
 # the GNU General Public License for more details.
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QDialog
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from ui.xga import ui_LoadCellDialog
 import numpad
-
+from ui import ui_LoadCellDialog
 
 
 class LoadCellDialog(QDialog, ui_LoadCellDialog.Ui_loadcellDialog):
@@ -30,10 +29,10 @@ class LoadCellDialog(QDialog, ui_LoadCellDialog.Ui_loadcellDialog):
         self.tareLabel.palette().setColor(self.tareLabel.backgroundRole(), QColor(255, 255, 255))
         self.haulWtLabel.palette().setColor(self.haulWtLabel.backgroundRole(), QColor(255, 255, 255))
         
-        self.connect(self.grossBtn, SIGNAL("clicked()"), self.getGross)
-        self.connect(self.tareBtn, SIGNAL("clicked()"), self.getTare)  
-        self.connect(self.okBtn, SIGNAL("clicked()"), self.goOK)      
-        self.connect(self.cancelBtn, SIGNAL("clicked()"), self.goExit)    
+        self.grossBtn.clicked.connect(self.getGross)
+        self.tareBtn.clicked.connect(self.getTare)
+        self.okBtn.clicked.connect(self.goOK)
+        self.cancelBtn.clicked.connect(self.goExit)
         
         self.numpad=numpad.NumPad(self)
         
@@ -47,8 +46,8 @@ class LoadCellDialog(QDialog, ui_LoadCellDialog.Ui_loadcellDialog):
     def getTare(self):
         self.numpad.msgLabel.setText('Enter empty bag weight')
         if self.numpad.exec_():
-            if float(self.numpad.value)>float(self.settings[QString('MaxTareWt')]):
-                self.message.setMessage(self.errorIcons[1],self.errorSounds[1], "The Load Cell Tare Weight Exceeds "+self.settings[QString('MaxTareWt')]+".  Does this concern you?", 'choice')
+            if float(self.numpad.value)>float(self.settings['MaxTareWt']):
+                self.message.setMessage(self.errorIcons[1],self.errorSounds[1], "The Load Cell Tare Weight Exceeds "+self.settings['MaxTareWt']+".  Does this concern you?", 'choice')
                 if self.message.exec_():
                     return
             self.tareLabel.setText(self.numpad.value)
