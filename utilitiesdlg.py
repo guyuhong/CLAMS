@@ -155,5 +155,5 @@ if __name__ == "__main__":
     db.schema = 'mbdev'
     db.open()
 
-    form = UtilitiesDlg(db)
-    app.exec_()
+    form = UtilitiesDlg()
+    app.exec()
