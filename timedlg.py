@@ -40,7 +40,7 @@
 """
 
 from PyQt6.QtCore import QDateTime, QDate, QTime, Qt
-from PyQt6.QtWidgets import QDialog
+from PyQt6.QtWidgets import QDialog, QApplication
 
 from ui import ui_TimeDlg
 
@@ -81,4 +81,10 @@ class TimeDlg(QDialog, ui_TimeDlg.Ui_timeDlg):
         self.time=self.qTime.toString('MMddyyyy hh:mm:ss.zzz')
         self.accept()
 
+if __name__ == "__main__":
 
+    import sys
+    app = QApplication(sys.argv)
+    form = TimeDlg()
+    form.show()
+    app.exec()
