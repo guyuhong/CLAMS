@@ -1,6 +1,49 @@
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from ui.xga import ui_TimeDlg
+# coding=utf-8
+
+#     National Oceanic and Atmospheric Administration (NOAA)
+#     Alaskan Fisheries Science Center (AFSC)
+#     Resource Assessment and Conservation Engineering (RACE)
+#     Midwater Assessment and Conservation Engineering (MACE)
+
+#  THIS SOFTWARE AND ITS DOCUMENTATION ARE CONSIDERED TO BE IN THE PUBLIC DOMAIN
+#  AND THUS ARE AVAILABLE FOR UNRESTRICTED PUBLIC USE. THEY ARE FURNISHED "AS
+#  IS."  THE AUTHORS, THE UNITED STATES GOVERNMENT, ITS INSTRUMENTALITIES,
+#  OFFICERS, EMPLOYEES, AND AGENTS MAKE NO WARRANTY, EXPRESS OR IMPLIED,
+#  AS TO THE USEFULNESS OF THE SOFTWARE AND DOCUMENTATION FOR ANY PURPOSE.
+#  THEY ASSUME NO RESPONSIBILITY (1) FOR THE USE OF THE SOFTWARE AND
+#  DOCUMENTATION; OR (2) TO PROVIDE TECHNICAL SUPPORT TO USERS.
+
+"""
+    :module:: TimeDlg
+
+    :synopsis: This dialog gets date/time input from the user.
+               I think this is mainly used when a user is
+               editing past measurements/actions in an event and
+               they have to provide a time for that action.
+
+| Developed by:  Rick Towler   <rick.towler@noaa.gov>
+|                Kresimir Williams   <kresimir.williams@noaa.gov>
+| National Oceanic and Atmospheric Administration (NOAA)
+| National Marine Fisheries Service (NMFS)
+| Alaska Fisheries Science Center (AFSC)
+| Midwater Assesment and Conservation Engineering Group (MACE)
+|
+| Author:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+| Maintained by:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+|       Mike Levine   <mike.levine@noaa.gov>
+|       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
+        Melina Shak <melina.shak@noaa.gov>
+"""
+
+from PyQt6.QtCore import QDateTime, QDate, QTime, Qt
+from PyQt6.QtWidgets import QDialog, QApplication
+
+from ui import ui_TimeDlg
+
 
 class TimeDlg(QDialog, ui_TimeDlg.Ui_timeDlg):
 
@@ -8,9 +51,9 @@ class TimeDlg(QDialog, ui_TimeDlg.Ui_timeDlg):
         super(TimeDlg, self).__init__(parent)
         self.setupUi(self)
 
-        self.connect(self.okBtn, SIGNAL("clicked()"), self.exit)
-        self.connect(self.pbGetCurrentTime, SIGNAL("clicked()"), self.getCurrentTime)
-        self.connect(self.cancelBtn, SIGNAL("clicked()"), self.cancel)
+        self.okBtn.clicked.connect(self.exit)
+        self.pbGetCurrentTime.clicked.connect(self.getCurrentTime)
+        self.cancelBtn.clicked.connect(self.cancel)
         self.timeEdit.setDisplayFormat('hh:mm:ss.zzz')
 
     def setTime(self, time):
@@ -38,4 +81,10 @@ class TimeDlg(QDialog, ui_TimeDlg.Ui_timeDlg):
         self.time=self.qTime.toString('MMddyyyy hh:mm:ss.zzz')
         self.accept()
 
+if __name__ == "__main__":
 
+    import sys
+    app = QApplication(sys.argv)
+    form = TimeDlg()
+    form.show()
+    app.exec()

@@ -1,11 +1,49 @@
+# coding=utf-8
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+#     National Oceanic and Atmospheric Administration (NOAA)
+#     Alaskan Fisheries Science Center (AFSC)
+#     Resource Assessment and Conservation Engineering (RACE)
+#     Midwater Assessment and Conservation Engineering (MACE)
+
+#  THIS SOFTWARE AND ITS DOCUMENTATION ARE CONSIDERED TO BE IN THE PUBLIC DOMAIN
+#  AND THUS ARE AVAILABLE FOR UNRESTRICTED PUBLIC USE. THEY ARE FURNISHED "AS
+#  IS."  THE AUTHORS, THE UNITED STATES GOVERNMENT, ITS INSTRUMENTALITIES,
+#  OFFICERS, EMPLOYEES, AND AGENTS MAKE NO WARRANTY, EXPRESS OR IMPLIED,
+#  AS TO THE USEFULNESS OF THE SOFTWARE AND DOCUMENTATION FOR ANY PURPOSE.
+#  THEY ASSUME NO RESPONSIBILITY (1) FOR THE USE OF THE SOFTWARE AND
+#  DOCUMENTATION; OR (2) TO PROVIDE TECHNICAL SUPPORT TO USERS.
+
+"""
+    :module:: HaulWtSelDlg
+
+    :synopsis: HaulWtSelDlg is presented when the user clicks the
+               "Haul Weight Type" button for any partition in the
+               Haul form. This is where the user selects how they
+               will determine/enter the total weight of the catch.
+
+| Developed by:  Rick Towler   <rick.towler@noaa.gov>
+|                Kresimir Williams   <kresimir.williams@noaa.gov>
+| National Oceanic and Atmospheric Administration (NOAA)
+| National Marine Fisheries Service (NMFS)
+| Alaska Fisheries Science Center (AFSC)
+| Midwater Assesment and Conservation Engineering Group (MACE)
+|
+| Author:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+| Maintained by:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+|       Mike Levine   <mike.levine@noaa.gov>
+|       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
+        Melina Shak <melina.shak@noaa.gov>
+"""
+
+from PyQt6.QtWidgets import QDialog
 import loadcelldialog
 import bindialog
 import numpad
-from ui.xga import ui_HaulWtSelDlg
-
+from ui import ui_HaulWtSelDlg
 
 class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
     def __init__(self,  parent=None):
@@ -24,10 +62,10 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
         self.btn_3.setText("Guesstimate")
 
         # hook up slots
-        self.connect(self.btn_0, SIGNAL("clicked()"), self.noSubsample)
-        self.connect(self.btn_1, SIGNAL("clicked()"), self.binVolumetric)
-        self.connect(self.btn_2, SIGNAL("clicked()"), self.loadCell)
-        self.connect(self.btn_3, SIGNAL("clicked()"), self.getGuess)
+        self.btn_0.clicked.connect(self.noSubsample)
+        self.btn_1.clicked.connect(self.binVolumetric)
+        self.btn_2.clicked.connect(self.loadCell)
+        self.btn_3.clicked.connect(self.getGuess)
 
 
     def noSubsample(self):

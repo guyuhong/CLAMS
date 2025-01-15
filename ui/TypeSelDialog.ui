@@ -1,125 +1,110 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>typeselDialog</class>
- <widget class="QDialog" name="typeselDialog" >
-  <property name="geometry" >
+ <widget class="QDialog" name="typeselDialog">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>322</width>
-    <height>353</height>
+    <width>288</width>
+    <height>237</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Sample Type</string>
   </property>
-  <widget class="QGroupBox" name="typeBox" >
-   <property name="enabled" >
-    <bool>true</bool>
-   </property>
-   <property name="geometry" >
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>301</width>
-     <height>301</height>
-    </rect>
-   </property>
-   <property name="title" >
-    <string/>
-   </property>
-   <widget class="QPushButton" name="btn_0" >
-    <property name="geometry" >
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>281</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font" >
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text" >
-     <string/>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_1" >
-    <property name="geometry" >
-     <rect>
-      <x>10</x>
-      <y>80</y>
-      <width>281</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font" >
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text" >
-     <string/>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_2" >
-    <property name="geometry" >
-     <rect>
-      <x>10</x>
-      <y>150</y>
-      <width>281</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font" >
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text" >
-     <string/>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_3" >
-    <property name="geometry" >
-     <rect>
-      <x>10</x>
-      <y>220</y>
-      <width>281</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font" >
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text" >
-     <string/>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QLabel" name="label" >
-   <property name="geometry" >
-    <rect>
-     <x>10</x>
-     <y>0</y>
-     <width>249</width>
-     <height>34</height>
-    </rect>
-   </property>
-   <property name="font" >
-    <font>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text" >
-    <string>Basket Sample Type?</string>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Basket Sample Type?</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_0">
+       <property name="minimumSize">
+        <size>
+         <width>165</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_1">
+       <property name="minimumSize">
+        <size>
+         <width>165</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_2">
+       <property name="minimumSize">
+        <size>
+         <width>165</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_3">
+       <property name="minimumSize">
+        <size>
+         <width>165</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
