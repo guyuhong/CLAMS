@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>322</width>
+    <width>344</width>
     <height>350</height>
    </rect>
   </property>
@@ -24,8 +24,8 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
+       <family>Arial Black</family>
        <pointsize>16</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -47,7 +47,9 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <family>Arial Black</family>
+       <pointsize>16</pointsize>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -57,6 +59,13 @@
    </item>
    <item>
     <spacer name="verticalSpacer_3">
+     <property name="font">
+      <font>
+       <family>Arial Black</family>
+       <pointsize>16</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -78,7 +87,9 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <family>Arial Black</family>
+       <pointsize>16</pointsize>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -88,6 +99,13 @@
    </item>
    <item>
     <spacer name="verticalSpacer_2">
+     <property name="font">
+      <font>
+       <family>Arial Black</family>
+       <pointsize>16</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -109,7 +127,9 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <family>Arial Black</family>
+       <pointsize>16</pointsize>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
@@ -119,6 +139,13 @@
    </item>
    <item>
     <spacer name="verticalSpacer">
+     <property name="font">
+      <font>
+       <family>Arial Black</family>
+       <pointsize>16</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -140,7 +167,9 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>14</pointsize>
+       <family>Arial Black</family>
+       <pointsize>16</pointsize>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">

@@ -71,10 +71,11 @@ class LoadCellDialog(QDialog, ui_LoadCellDialog.Ui_loadcellDialog):
 
 
     def getGross(self):
+
         self.numpad.msgLabel.setText('Enter total bag weight')
         if self.numpad.exec():
             grossWT=self.numpad.value
-            self.grossLabel.setText(grossWT)
+            self.grossBtn.setText(grossWT)
             self.tareBtn.setEnabled(True)
 
 
@@ -90,9 +91,9 @@ class LoadCellDialog(QDialog, ui_LoadCellDialog.Ui_loadcellDialog):
                 if self.message.exec():
                     return
 
-            self.tareLabel.setText(self.numpad.value)
+            self.tareBtn.setText(self.numpad.value)
             tareWTnum = float(self.numpad.value)
-            grossWTnum = float(self.grossLabel.text())
+            grossWTnum = float(self.grossBtn.text())
             haulWT = grossWTnum - tareWTnum
             self.haulWtLabel.setNum(haulWT)
             self.okBtn.setEnabled(True)

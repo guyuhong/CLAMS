@@ -109,7 +109,7 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
 
         #  load the error icon
         self.errorIcon = QPixmap()
-        self.errorIcon.load(self.settings[QString('IconDir')] + "\\error.bmp")
+        self.errorIcon.load(self.settings['IconDir'] + "\\error.bmp")
 
         #  connect button signals...
         self.commentBtn.clicked.connect(self.getComment)
@@ -140,7 +140,7 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         #  from the window's init method.
         initTimer = QTimer(self)
         initTimer.setSingleShot(True)
-        self.connect(initTimer, SIGNAL("timeout()"), self.formInit)
+        initTimer.timeout.connect(self.formInit)
         initTimer.start(0)
 
 
@@ -216,7 +216,7 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
                         self.activeHaul + " AND event_data.partition='" + partition +
                         "' AND event_data.event_parameter = '" + parameter + "'")
                 query = self.db.dbQuery(sql)
-                paramVal, query.first()
+                paramVal, = query.first()
                 if paramVal:
                     self.haulInfoBtns[j][i].setText(paramVal)
 
@@ -251,11 +251,12 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
             self.partitionLabels[i].hide()
             for j in range(2):
                 self.haulInfoBtns[j][i].hide()
+        self.groupBox3.hide()
 
         #  set the GUI labels
         self.groupBox1.setTitle('Haul Weight Type')
         self.groupBox2.setTitle('Haul Weight')
-        self.partitionLabels[0].setText('Codend')
+        self.partitionLabels[0].setText('<font size=16>Codend')
 
         #  set up the partion and haul parameters for a single codend trawl
         self.partitions = ['Codend']
@@ -491,7 +492,7 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
                     " AND survey=" + self.survey + " AND event_id=" + self.activeHaul +
                     " AND event_parameter='PartitionWeightType'")
             query = self.db.dbQuery(sql)
-            hasParam, query.first()
+            hasParam, = query.first()
             if not hasParam:
                 sql = ("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
                         "parameter_value) VALUES (" + self.ship+ "," + self.survey + "," +
@@ -537,8 +538,11 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         #  if the "long" list checkbox is NOT checked, first get the "short"
         #  performance list and check if the curent perf code is in that list
         if not self.perfCheckBox.isChecked():
+            #  get the short list
             sql = ("SELECT event_performance.performance_code, event_performance.description " +
-                    "FROM event_performance")
+                    "FROM event_performance INNER JOIN gear_options ON event_performance.performance_code" +
+                    "= gear_options.performance_code WHERE (((gear_options.gear)='" +
+                    self.gearLabel.text() + "')) ORDER BY gear_options.perf_gui_order")
             query = self.db.dbQuery(sql)
             for perfCode, description in query:
                 self.perfBox.addItem(description)
@@ -550,10 +554,11 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
             comboInd = self.performanceCodes.index(self.perfCode)
         else:
             #  it isn't, get the full list and check if it is in that
+            self.perfBox.clear()
+            self.performanceCodes = []
+
             sql = ("SELECT event_performance.performance_code, event_performance.description " +
-                    "FROM event_performance INNER JOIN gear_options ON event_performance.performance_code" +
-                    "= gear_options.performance_code WHERE (((gear_options.gear)='" +
-                    self.gearBox.currentText() + "')) ORDER BY gear_options.perf_gui_order")
+                    "FROM event_performance")
             query = self.db.dbQuery(sql)
             for perfCode, description in query:
                 self.perfBox.addItem(description)

@@ -49,9 +49,7 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
     def __init__(self,  parent=None):
         super(HaulWtSelDlg, self).__init__(parent)
 
-
         self.setupUi(self)
-
 
         self.ok=False
         self.settings=parent.settings
@@ -61,16 +59,15 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
         self.numpad=numpad.NumPad(self)
 
         self.btn_0.setText("Not Subsampled")
-        self.btn_1.setText("Bin Volumetric")
-        self.btn_2.setText("Load Cell")
+        self.btn_1.setText("Load Cell")
+        self.btn_2.setText("Bin Volumetric")
         self.btn_3.setText("Guesstimate")
 
         # hook up slots
         self.btn_0.clicked.connect(self.noSubsample)
-        self.btn_1.clicked.connect(self.binVolumetric)
-        self.btn_2.clicked.connect(self.loadCell)
+        self.btn_1.clicked.connect(self.loadCell)
+        self.btn_2.clicked.connect(self.binVolumetric)
         self.btn_3.clicked.connect(self.getGuess)
-
 
 
     def noSubsample(self):
@@ -82,8 +79,7 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
 
 
     def binVolumetric(self):
-        '''
-            getBinVolumetric displays the modal bin dialog so the user
+        '''getBinVolumetric displays the modal bin dialog so the user
             can enter the value.  If the user clicks ok the weight
             label is updated.
         '''
@@ -97,8 +93,7 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
 
 
     def loadCell(self):
-        '''
-            getLoadCell displays the modal load cell dialog so the user
+        '''getLoadCell displays the modal load cell dialog so the user
             can enter the load cell value.  If the user clicks ok the weight
             label is updated.
         '''
@@ -112,11 +107,11 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
 
 
     def getGuess(self):
-        '''
-            getGuess displays the number pad so the user can enter their
+        '''getGuess displays the number pad so the user can enter their
             visual estimate. If the user clicks ok the weight label is
             updated.
         '''
+
         self.numpad.msgLabel.setText("Enter your visual estimate" )
         if self.numpad.exec():
             self.weight = self.numpad.value
