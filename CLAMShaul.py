@@ -1,13 +1,52 @@
-'''
+# coding=utf-8
 
-'''
+#     National Oceanic and Atmospheric Administration (NOAA)
+#     Alaskan Fisheries Science Center (AFSC)
+#     Resource Assessment and Conservation Engineering (RACE)
+#     Midwater Assessment and Conservation Engineering (MACE)
 
+#  THIS SOFTWARE AND ITS DOCUMENTATION ARE CONSIDERED TO BE IN THE PUBLIC DOMAIN
+#  AND THUS ARE AVAILABLE FOR UNRESTRICTED PUBLIC USE. THEY ARE FURNISHED "AS
+#  IS."  THE AUTHORS, THE UNITED STATES GOVERNMENT, ITS INSTRUMENTALITIES,
+#  OFFICERS, EMPLOYEES, AND AGENTS MAKE NO WARRANTY, EXPRESS OR IMPLIED,
+#  AS TO THE USEFULNESS OF THE SOFTWARE AND DOCUMENTATION FOR ANY PURPOSE.
+#  THEY ASSUME NO RESPONSIBILITY (1) FOR THE USE OF THE SOFTWARE AND
+#  DOCUMENTATION; OR (2) TO PROVIDE TECHNICAL SUPPORT TO USERS.
 
-#  import
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4 import QtSql
-from ui.xga import ui_CLAMSHaul
+"""
+.. module:: CLAMShaul
+
+    :synopsis: CLAMShaul presents the CLAMS haul form. The haul form
+               is used to specify how the main partition weight(s) will
+               be determined. The "main" partition(s) are partitions that
+               have sizeable catch. Think codend. Pocketnets are not
+               considered main partitions. If the partition(s) will be
+               subsampled, this form allows the user to enter the partition
+               total weight. The haul form is the first form that is completed
+               when processing the catch.
+
+| Developed by:  Rick Towler   <rick.towler@noaa.gov>
+|                Kresimir Williams   <kresimir.williams@noaa.gov>
+| National Oceanic and Atmospheric Administration (NOAA)
+| National Marine Fisheries Service (NMFS)
+| Alaska Fisheries Science Center (AFSC)
+| Midwater Assesment and Conservation Engineering Group (MACE)
+|
+| Author:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+| Maintained by:
+|       Rick Towler   <rick.towler@noaa.gov>
+|       Kresimir Williams   <kresimir.williams@noaa.gov>
+|       Mike Levine   <mike.levine@noaa.gov>
+|       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
+"""
+
+#  imports
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
+from ui import ui_CLAMSHaul
 import haulwtseldlg
 import numpad
 import keypad
@@ -15,8 +54,12 @@ from math import *
 import messagedlg
 
 class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
-    '''
-        The CLAMS Haul dialog class. This form ....
+    '''CLAMShaul presents the CLAMS haul form. The haul form is used to specify
+    how the main partition weight(s) will be determined. The "main" partition(s)
+    are partitions that have sizeable catch. Think codend. Pocketnets are not
+    considered main partitions. If the partition(s) will be subsampled, this
+    form allows the user to enter the partition weight. The haul form is the
+    first form that is completed when processing the catch.
     '''
 
     def __init__(self,  parent=None):
@@ -29,27 +72,25 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         super(CLAMSHaul, self).__init__(parent)
         self.setupUi(self)
 
-        #  check if our database connection is open
-        self.db = parent.db
-        if not self.db.isOpen():
-            self.db.open()
-
         #  copy some info from parent for convenience
-        self.workStation=parent.workStation
-        self.activeHaul=parent.activeHaul
-        self.survey=parent.survey
-        self.ship=parent.ship
-        self.settings=parent.settings
-        self.errorSounds=parent.errorSounds
-        self.errorIcons=parent.errorIcons
-        self.serMonitor=parent.serMonitor
-        self.backLogger=parent.backLogger
+        self.db = parent.db
+        self.workStation = parent.workStation
+        self.activeHaul = parent.activeHaul
+        self.survey = parent.survey
+        self.ship = parent.ship
+        self.settings = parent.settings
+        self.errorSounds = parent.errorSounds
+        self.errorIcons = parent.errorIcons
+        self.serMonitor = parent.serMonitor
         self.blue = parent.blue
         self.black = parent.black
-        self.scientist=parent.scientist
+        self.scientist = parent.scientist
+
+        #  set the sci name and extract the first name
         self.sciLabel.setText(self.scientist)
-        p=self.scientist.split(' ')
-        self.firstName=p[0]
+        self.firstName = self.scientist.split(' ')[0]
+
+        #  create lists of our dynamic buttons and associated labels
         self.haulInfoBtns=[[self.haulInfoBtn1_1, self.haulInfoBtn1_2, self.haulInfoBtn1_3, self.haulInfoBtn1_4],
                            [self.haulInfoBtn2_1, self.haulInfoBtn2_2, self.haulInfoBtn2_3, self.haulInfoBtn2_4],
                            [self.haulInfoBtn3_1, self.haulInfoBtn3_2, self.haulInfoBtn3_3, self.haulInfoBtn3_4]]
@@ -62,23 +103,31 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         self.perfBoxFlag = False
         self.reloadFlag=False
         self.forceExit = False
+        self.partitions = []
+        self.parameters = []
+        self.perfCode = 0
 
         #  load the error icon
         self.errorIcon = QPixmap()
         self.errorIcon.load(self.settings[QString('IconDir')] + "\\error.bmp")
 
         #  connect button signals...
-        self.connect(self.commentBtn, SIGNAL("clicked()"), self.getComment)
-        self.connect(self.doneBtn, SIGNAL("clicked()"), self.goExit)
-        self.connect(self.perfBox, SIGNAL("activated(int)"), self.setFlag)
-        self.connect(self.perfCheckBox, SIGNAL("stateChanged(int)"), self.getFullPerfList)
+        self.commentBtn.clicked.connect(self.getComment)
+        self.doneBtn.clicked.connect(self.close)
+        self.perfBox.activated[int].connect(self.setFlag)
+        self.perfCheckBox.stateChanged[int].connect(self.getPerfList)
 
-        #  set up window position/size and min/max constraints
-        screen=QDesktopWidget().screenGeometry()
-        window = self.geometry()
-        self.setGeometry((screen.width()-window.width())/2,parent.windowAnchor[0]+(parent.windowAnchor[1]-window.height()), window.width(), window.height())
-        self.setMinimumSize(window.width(), window.height())
-        self.setMaximumSize(window.width(), window.height())
+        #  restore the application state
+        self.appSettings = QSettings('CLAMS', 'HaulForm')
+        size = self.appSettings.value('winsize', QSize(950,665))
+        position = self.appSettings.value('winposition', QPoint(10,10))
+
+        #  check the current position and size to make sure the app is on the screen
+        position, size = self.checkWindowLocation(position, size)
+
+        #  now move and resize the window
+        self.move(position)
+        self.resize(size)
 
         #  setup recurring dialogs
         self.numpad = numpad.NumPad(self)
@@ -96,166 +145,260 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
 
 
     def formInit(self):
+        '''formInit is called when the init timeout timer expires. It completes
+        setup of the form, querying data and updating the GUI based on gear type.
+        '''
 
-        # set up Haul Info business -
-        query = QtSql.QSqlQuery("SELECT gear FROM events WHERE SHIP = " + self.ship + "  AND SURVEY = " +
-                self.survey + " AND event_id=" + self.activeHaul)
-        query.first()
-        self.gear=query.value(0).toString()
-
-
-        sql = ("SELECT gear FROM events WHERE SHIP = " + self.ship + "  AND SURVEY = " +
-                self.survey + " AND event_id=" + self.activeHaul)
+        # get the basic event information
+        sql = ("SELECT gear, event_type, performance_code, scientist, comments " +
+                    "FROM events WHERE ship=" + self.ship + " AND survey=" + self.survey +
+                    " AND event_id=" + self.activeHaul)
         query = self.db.dbQuery(sql)
-        self.gear, = query.first()
+        self.gear, event_type, perf_code, trawl_sci, comments = query.first()
+
+        #  update the comment and set the performance code from the event
+        self.comment = comments
+        self.perfCode = perf_code
+
+        #  update the gear and scientists label
+        self.gearLabel.setText(self.gear)
+        self.sciLabel.setText(self.scientist)
 
         #  load and display the gear image (if available)
-        pic = QImage()
-        if pic.load(self.settings[QString('ImageDir')] + '\\gearPics\\'+self.gear + ".jpg"):
-             pic=pic.scaled(self.picLabel.size(),Qt.KeepAspectRatio,  Qt.SmoothTransformation)
-             self.picLabel.setPixmap(QPixmap.fromImage(pic))
-        else:
-            self.picLabel.clear()
+        try:
+            imgPath = os.path.normpath(self.settings['ImageDir'] + os.sep +
+                    'gearPics' + os.sep + self.gear + '.jpg')
+            gearImage = QImage(imgPath)
+            gearImage = gearImage.scaled(self.picLabel.size(),
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation)
+            self.picLabel.setPixmap(QPixmap.fromImage(gearImage))
+        except:
+            self.picLabel.setText("<Image Unavailable>")
 
-        #  populate gear performance combo box
-        query = QtSql.QSqlQuery("SELECT event_performance.performance_code, event_performance.description " +
-                                "FROM event_performance INNER JOIN gear_options ON " +
-                                "event_performance.performance_code = gear_options.performance_code WHERE " +
-                                "(((gear_options.gear)='" + self.gear + "')) ORDER BY gear_options.perf_gui_order")
-        self.perfBox.setEnabled(True)
-        self.perfCode=[]
-        self.perfBox.clear()
-        while query.next():
-            self.perfBox.addItem(query.value(1).toString())
-            self.perfCode.append(query.value(0).toString())
+        #  update the performance code list and set the combobox
+        self.getPerfList()
 
-        # get from short list, otherwise, get full list
-        queryOld=QtSql.QSqlQuery("SELECT gear, event_type, performance_code, scientist, comments "+
-                    "FROM events WHERE ship=" + self.ship+ " AND survey=" + self.survey
-                    + " AND event_id=" + self.activeHaul)
-        # get values
-        queryOld.first()
-        if queryOld.value(2).toString() in self.perfCode:
-            ind=self.perfCode.index(queryOld.value(2).toString())
-        else:
-            self.perfCheckBox.setCheckState(Qt.Checked)
-            self.getFullPerfList()
-            ind=self.perfCode.index(queryOld.value(2).toString())
-        self.perfBox.setCurrentIndex(ind)
+        #  determine what gear we're working with and set up the form details. The
+        #  base form has a bunch of buttons and labels and they are shown/hidden
+        #  based on the general gear type. CLAMS supports 3 general gear types:
+        #
+        #    SingleCodendTrawl - a standard fishing net with a single codend. This
+        #           type of trawl will only have a single "main" partition and
+        #           the form will present a single row of buttons allowing the
+        #           user to specify the weight type and (optionally) the weight.
+        #    MultiCodendTrawl - a standard fishing net with multiple codends. This
+        #           type of trawl will have 3 "main" partitions and the form will
+        #           present 3 rows of buttons.
+        #    PlanktonNet - a net designed to catch plankton with a single "codend".
+        #           PlanktonNet codends are treated like a pocketnet and are never
+        #           subsampled so the user does not specify the haul weight type but
+        #           these nets are deployed with a flow meter and the haul form buttons
+        #           are configured to capture the flow meter readings.
 
-        #  determine what gear we're working with and set up the details
-        query = QtSql.QSqlQuery("SELECT gear_type FROM gear WHERE gear='" + self.gear + "'")
-        query.first()
-        self.gearType=query.value(0).toString()
-        self.haulInfo=[]
-        self.completeTest=[]
-        if self.gearType == 'SingleCodendTrawl':
+        sql = ("SELECT gear_type FROM gear WHERE gear='" + self.gear + "'")
+        query = self.db.dbQuery(sql)
+        self.gearType, = query.first()
+        self.haulInfo = []
+        self.completeTest = []
+        if self.gearType.lower() == 'singlecodendtrawl':
             self.singleCodendTrawl()
-        elif self.gearType == 'PlanktonNet':
+        elif self.gearType.lower() == 'planktonnet':
             self.planktonNet()
-        elif self.gearType == 'MultiCodendTrawl':
+        elif self.gearType.lower() == 'multicodendtrawl':
             self.multiCodendTrawl()
 
-        #  update the comment from the trawl event
-        self.comment=queryOld.value(4).toString()
+        #  populate Haul Info
+        for i, partition  in enumerate(self.partitions):
+            for j, parameter  in enumerate(self.parameters):
+                sql = ("SELECT event_data.parameter_value FROM event_data WHERE event_data.ship="+
+                        self.ship+ " AND event_data.survey=" + self.survey+ " AND event_data.event_id=" +
+                        self.activeHaul + " AND event_data.partition='" + partition +
+                        "' AND event_data.event_parameter = '" + parameter + "'")
+                query = self.db.dbQuery(sql)
+                paramVal, query.first()
+                if paramVal:
+                    self.haulInfoBtns[j][i].setText(paramVal)
 
-        #  check if data already exists
-        self.reloadData()
 
+    '''
+    The following three methods set up the GUI depending on the type of gear
+    that was deployed. They hide unused buttons/labels and set the text on
+    buttons and labels that are needed for the type of gear that was deployed.
+
+    The single codend and plankton trawls are pretty standard. The multi codend
+    trawl is set up for a 3 codend system which was what MACE has used. Multi
+    codend trawls are pretty uncommon, but if a 2 or 4 codend trawl system was
+    being used, the multi codend setup would need to be extended to store the
+    number of codends in the database somehow attached to the gear and this
+    form would need to be updated to query that out. For now it is fixed at 3.
+    '''
 
     def singleCodendTrawl(self):
+        '''singleCodendTrawl sets the form up for a single codend trawl net. This
+        will present the user with a single row of buttons where they will specify
+        the haul weight type and optionally the weight (if they are subsampling)
+        '''
+
+        #  connect the button signals
         for i in range(1):
-            self.connect(self.haulInfoBtns[0][i], SIGNAL("clicked()"), self.getWeight)
+            self.haulInfoBtns[0][i].clicked.connect(self.getWeight)
+
+        #  hide the other buttons and labels
         for j in range(4):
                 self.haulInfoBtns[2][j].hide()
         for i in range(1, 4):
             self.partitionLabels[i].hide()
             for j in range(2):
                 self.haulInfoBtns[j][i].hide()
+
+        #  set the GUI labels
         self.groupBox1.setTitle('Haul Weight Type')
         self.groupBox2.setTitle('Haul Weight')
         self.partitionLabels[0].setText('Codend')
-        self.partitions=['Codend']
-        self.parameters=['PartitionWeightType', 'PartitionWeight']
 
-
-    def getWeight(self):
-        ind=self.haulInfoBtns[0].index(self.sender())
-        wtDlg = haulwtseldlg.HaulWtSelDlg(self)
-        wtDlg.exec_()
-        if wtDlg.ok:
-            self.haulInfoBtns[0][ind].setText(wtDlg.weightType)
-            self.haulInfoBtns[1][ind].setText(wtDlg.weight)
+        #  set up the partion and haul parameters for a single codend trawl
+        self.partitions = ['Codend']
+        self.parameters = ['PartitionWeightType', 'PartitionWeight']
 
 
     def multiCodendTrawl(self):
+        '''multiCodendTrawl sets the form up for a triple codend trawl net. This
+        will present the user with a three rows of buttons where they will specify
+        the haul weight type and optionally the weight (if they are subsampling) for
+        each codend.
+        '''
+
+        #  connect the button signals
         for i in range(4):
-            self.connect(self.haulInfoBtns[0][i], SIGNAL("clicked()"), self.getWeight)
+            self.haulInfoBtns[0][i].clicked.connect(self.getWeight)
+
+        #  hide the other buttons and labels
         for j in range(4):
                 self.haulInfoBtns[2][j].hide()
         self.partitionLabels[3].hide()
         for j in range(2):
             self.haulInfoBtns[j][3].hide()
+
+        #  set the GUI labels
         self.groupBox1.setTitle('Haul Weight Type')
         self.groupBox2.setTitle('Haul Weight')
+
+        #  for now, we assume the first codend was always deployed
         self.partitionLabels[0].setText('Codend 1')
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM event_data WHERE ship=" + self.ship+ " AND survey=" + self.survey+
-        " AND event_id=" + self.activeHaul+ " AND partition='Codend_2' AND event_parameter='EQ'")
-        if query.first():
+
+        #  now check if the 2nd codend was deployed - determined by the
+        #  presence of EQ for the 2nd codend
+        sql = ("SELECT parameter_value FROM event_data WHERE ship=" + self.ship + " AND survey=" +
+                self.survey + " AND event_id=" + self.activeHaul +
+                " AND partition='Codend_2' AND event_parameter='EQ'")
+        query = self.db.dbQuery(sql)
+        hasEQ, = query.first()
+        if hasEQ:
+            #  it was, set the label
             self.partitionLabels[1].setText('Codend 2')
         else:
+            #  it wasn't - hide the button
             self.haulInfoBtn1_2.setEnabled(False)
-        query=QtSql.QSqlQuery("SELECT parameter_value FROM event_data WHERE ship=" + self.ship+ " AND survey=" + self.survey+
-        " AND event_id=" + self.activeHaul+ " AND partition='Codend_3' AND event_parameter='EQ'")
-        if query.first():
-            self.partitionLabels[2].setText('Codend 3')
-        else:
-            self.haulInfoBtn1_3.setEnabled(False)
 
+        #  now check if the 3rd codend was deployed - determined by the
+        #  presence of EQ for the 3rd codend
+        sql = ("SELECT parameter_value FROM event_data WHERE ship=" + self.ship + " AND survey=" +
+                self.survey + " AND event_id=" + self.activeHaul +
+                " AND partition='Codend_3' AND event_parameter='EQ'")
+        query = self.db.dbQuery(sql)
+        hasEQ, = query.first()
+        if hasEQ:
+            #  it was, set the label
+            self.partitionLabels[1].setText('Codend 3')
+        else:
+            #  it wasn't - hide the button
+            self.haulInfoBtn1_2.setEnabled(False)
+
+        #  set up the partion and haul parameters for a multi codend trawl
         self.partitions=['Codend_1', 'Codend_2', 'Codend_3']
         self.parameters=['PartitionWeightType', 'PartitionWeight']
 
 
     def planktonNet(self):
-        #  HIDE ALL OF THE BUTTONS AND THEN SHOW THEM WHEN YOU'RE CONNECTING SIGNALS
+        '''planktonNet sets the form up for a methot or bongo trawl. This
+        will present the user with a one (or two for bongo) row of buttons where
+        they will specify the flowmeter start and stop readings. Plankton nets
+        like this are traditionally deployed with flow meters to determine the
+        volume of water sampled. The haul form is used to capture this data.
+        Methots and Bongos are always "not subsampled" so there is no partition
+        weight type and weight to log.
+        '''
+
         if self.gear == 'Bongo':
-            self.partitionLabels[0].setText('Codend_1')
-            self.partitionLabels[1].setText('Codend_2')
+            #  Set up for a bongo - a bongo has two codends
+
+            #  connect the signals and hide unused buttons
             for i in range(0,2):
-                self.connect(self.haulInfoBtns[i][0], SIGNAL("clicked()"), self.getFlowmeter)
-                self.connect(self.haulInfoBtns[i][1], SIGNAL("clicked()"), self.getFlowmeter)
+                self.haulInfoBtns[i][0].clicked.connect(self.getFlowmeter)
+                self.haulInfoBtns[i][1].clicked.connect(self.getFlowmeter)
                 self.haulInfoBtns[i][2].hide()
                 self.haulInfoBtns[i][3].hide()
+            #  and hide unused labels
             for i in range(2,4):
                 self.partitionLabels[i].hide()
-            self.haulInfoBtns[2][0].hide()
-            self.haulInfoBtns[2][1].hide()
-            self.haulInfoBtns[2][2].hide()
-            self.haulInfoBtns[2][3].hide()
+            #  and hide some more buttons
+            for i in range(0,4):
+                self.haulInfoBtns[2][i].hide()
+
+            #  set the labels
             self.groupBox1.setTitle('Flow Meter Start')
             self.groupBox2.setTitle('Flow Meter End')
-            #self.partitionLabels[0].setText('Codend')
-            self.partitions=['Codend_1',  'Codend_2']
+            self.partitionLabels[0].setText('Codend 1')
+            self.partitionLabels[1].setText('Codend 2')
+
+            #  set up the partion and haul parameters for a bongo
+            self.partitions=['Codend_1', 'Codend_2']
             self.parameters=['FlowMeterStart', 'FlowMeterEnd']
+
         else:
+            #  set up for a methot
             for i in range(0,2):
-                self.connect(self.haulInfoBtns[i][0], SIGNAL("clicked()"), self.getFlowmeter)
+                self.haulInfoBtns[i][0].clicked.connect(self.getFlowmeter)
             self.haulInfoBtns[2][0].hide()
             for i in range(1,4):
                 self.partitionLabels[i].hide()
                 for j in range(3):
                     self.haulInfoBtns[j][i].hide()
 
+            #  set the labels
             self.groupBox1.setTitle('Flow Meter Start')
             self.groupBox2.setTitle('Flow Meter End')
             self.partitionLabels[0].setText('Codend')
+
+            #  set up the partion and haul parameters for a methot
             self.partitions=['Codend']
             self.parameters=['FlowMeterStart', 'FlowMeterEnd']
 
 
+    def getWeight(self):
+        '''getWeight is called when the user clicks the "Haul Weight Type" button for a given
+        partition. This dialog will allow the user to select the weight measurement type
+        (not subsampled, load cell, estimate) and depending on the selection, enter the
+        weight. It then returns the type and weight (or "TBD" for not subsampled since
+        non-subsampled weight is determined by summing all of the basket weights.)
+
+        '''
+        ind = self.haulInfoBtns[0].index(self.sender())
+        wtDlg = haulwtseldlg.HaulWtSelDlg(self)
+        wtDlg.exec()
+        if wtDlg.ok:
+            self.haulInfoBtns[0][ind].setText(wtDlg.weightType)
+            self.haulInfoBtns[1][ind].setText(wtDlg.weight)
+
+
     def getFlowmeter(self):
+        '''getFlowmeter is called when a user presses the start or end flowmeter
+        buttons on the Bongo or Methot form. It presents the numpad so the user
+        can enter the flowmeter readings.
+        '''
         self.numpad.msgLabel.setText("Enter flowmeter number," + self.firstName)
-        if self.numpad.exec_():
+        if self.numpad.exec():
             self.sender().setText(self.numpad.value)
 
 
@@ -265,16 +408,17 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
         haulInfoCompleteFlag = True
         for btns in self.haulInfoBtns:
             for btn in btns:
-                if btn.isVisible() and btn.text()=='':
+                if btn.isVisible() and btn.text() == '':
                     #  a button is empty - IOW the form isn't complete
                     haulInfoCompleteFlag = False
 
         if not haulInfoCompleteFlag:
             #  the form is incomplete - ask the user if they want to close it or fix it
             self.incomplete = True
-            self.message.setMessage(self.errorIcons[0],self.errorSounds[0],'Haul information has not been completely ' +
-                    'entered! Do you still want to close this form?','choice')
-            ok = self.message.exec_()
+            self.message.setMessage(self.errorIcons[0], self.errorSounds[0],
+                    'Haul information has not been completely ' +
+                    'entered! Do you still want to close this form?', 'choice')
+            ok = self.message.exec()
             if ok:
                 #  force the exit with an incomplete form
                 self.forceExit = True
@@ -285,140 +429,177 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
             #  either way, we don't write anything to the database so we return
             return
 
-        # haul info data fields
-        for i in range(len(self.partitions)):
-            for j in range(len(self.parameters)):
+        # Insert or update the haul parameters and values for each main partition
+        for i, partition in enumerate(self.partitions):
+            for j, parameter in enumerate(self.parameters):
                 sql = ("SELECT * FROM event_data WHERE ship=" + self.ship + " AND survey=" + self.survey +
-                       " AND event_id=" + self.activeHaul + " AND partition='" + self.partitions[i] +
-                       "' AND event_parameter='" + self.parameters[j] + "'")
+                       " AND event_id=" + self.activeHaul + " AND partition='" + partition +
+                       "' AND event_parameter='" + parameter + "'")
                 query = self.db.dbQuery(sql)
                 if query.first():
                     #  There is an existing record - update it with new values
                     sql = ("UPDATE event_data SET parameter_value='" + self.haulInfoBtns[j][i].text() +
                         "' WHERE ship=" + self.ship + " AND survey=" + self.survey + " AND event_id=" +
-                        self.activeHaul + " AND partition='" + self.partitions[i] +
-                        "' AND event_parameter='" + self.parameters[j] + "'")
+                        self.activeHaul + " AND partition='" + partition +
+                        "' AND event_parameter='" + parameter + "'")
                 else:
                     #  This is a new record - insert it
                     sql = ("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
                         " parameter_value) VALUES ("+ self.ship + "," + self.survey + "," +
-                        self.activeHaul + ",'" + self.partitions[i] + "','" + self.parameters[j] +
+                        self.activeHaul + ",'" + partition + "','" + parameter +
                         "','" + self.haulInfoBtns[j][i].text() + "')")
                 self.db.dbExec(sql)
 
-        #haul info data for pocketnets (i.e. partitions named like 'pocketnet' or 'pnet')
-        #find  all partitions named like 'pocketnet' or 'pnet'
-        query=QtSql.QSqlQuery("SELECT partition FROM GEAR_OPTIONS, EVENTS WHERE GEAR_OPTIONS.GEAR = EVENTS.GEAR and EVENTS.SHIP = "+
-                              self.ship + "  AND  " + "EVENTS.SURVEY = " + self.survey + " AND EVENTS.EVENT_ID = " +
-                              self.activeHaul + " AND (LOWER(GEAR_OPTIONS.PARTITION) LIKE 'p-net' OR LOWER(GEAR_OPTIONS.PARTITION) LIKE '%pocketnet%')")
+        #  Now update the haul info data for pocketnets (i.e. partitions named like
+        #  'pocketnet' or 'pnet'). These are ALWAYS set to "not_subsampled".
+        #  first query the pocketnet partitions.
+        sql = ("SELECT partition FROM GEAR_OPTIONS, EVENTS WHERE GEAR_OPTIONS.GEAR = " +
+                "EVENTS.GEAR and EVENTS.SHIP = " + self.ship + "  AND  " + "EVENTS.SURVEY = " +
+                self.survey + " AND EVENTS.EVENT_ID = " + self.activeHaul +
+                " AND (LOWER(GEAR_OPTIONS.PARTITION) LIKE 'p-net' OR " +
+                "LOWER(GEAR_OPTIONS.PARTITION) LIKE '%pocketnet%')")
+        query = self.db.dbQuery(sql)
 
-        #if there are pocketnets, get the partition names
-        if query.first():
+        #  if there are pocketnets, check if PartitionWeight param exists. If not, we assume
+        #  that this is the first time we have run the Haul form for this event and insert
+        #  and insert the PartitionWeightType and PartitionWeight parameters into event_data.
+        for pnet_partition, in query:
+            #  check if the haul info is already in the database for this partition
+            sql = ("SELECT event_data.event_parameter FROM event_data WHERE event_data.ship = " +
+                    self.ship + "  AND event_data.SURVEY = " + self.survey + " AND event_data.EVENT_ID = " +
+                    self.activeHaul + " AND event_data.partition = '" + pnet_partition +
+                    "' AND event_data.event_parameter = 'PartitionWeight'")
+            query2 = self.db.dbQuery(sql)
+            hasParam, query2.first()
 
-            partition_list = [query.value(0).toString()]
-            while query.next():
-                #print(partition_list)
-                partition_list.append(query.value(0).toString())
+            #  if PartitionWeight doesn't exist, then insert the PartitionWeightType and
+            #  PartitionWeight parameters.
+            if not hasParam:
+                sql = ("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
+                        "parameter_value) VALUES (" + self.ship+ "," + self.survey + "," + self.activeHaul +
+                        ",'" + pnet_partition + "', 'PartitionWeightType','not_subsampled')")
+                self.db.dbExec(sql)
+                sql = ("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
+                        "parameter_value) VALUES (" + self.ship + "," + self.survey + "," +
+                        self.activeHaul+ ",'" + pnet_partition + "','PartitionWeight','TBD')")
+                self.db.dbExec(sql)
 
-            for i in range(len(partition_list)):
-                #check if the haul info is already in the database for these partitions (i.e. the haul form has already been opened for this haul); if it has, no need to update the info; otherwise enter info
-                query_if_already_entered = QtSql.QSqlQuery("SELECT event_data.event_parameter FROM event_data WHERE event_data.ship = " + self.ship + "  AND event_data.SURVEY = " + self.survey +
-                " AND event_data.EVENT_ID = " + self.activeHaul + " AND event_data.partition = '" +partition_list[i]+ "' AND event_data.event_parameter = 'PartitionWeight'")
-
-                #if nothing in database, loop through each pocketnet partition to set PartitionWeightType
-                if not query_if_already_entered.first():
-
-                    query2 = QtSql.QSqlQuery("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter, parameter_value)" +
-                                        " VALUES (" + self.ship+ "," + self.survey + "," + self.activeHaul + ",'" +partition_list[i]+
-                                        "', 'PartitionWeightType','not_subsampled')")
-                    self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss')+ "," + query2.lastQuery())
-                    query3 = QtSql.QSqlQuery("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter, parameter_value) VALUES ("+
-                                                        self.ship+ "," + self.survey+ "," + self.activeHaul+ ",'" +partition_list[i]+ "','PartitionWeight','TBD')")
-                    self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss')+ ","+query3.lastQuery())
-
-
+        #  Methot and Bongo hauls are also never subsampled so we always set their
+        #  PartitionWeightType to not_subsampled and PartitionWeight 'TBD'.
         if (self.gearType == 'PlanktonNet'):
-            query = QtSql.QSqlQuery("SELECT * FROM event_data WHERE ship=" + self.ship + " AND survey=" + self.survey +
-                        " AND event_id=" + self.activeHaul + " AND event_parameter='PartitionWeightType'")
-            if not query.first():
-                query = QtSql.QSqlQuery("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter, parameter_value)" +
-                                        " VALUES (" + self.ship+ "," + self.survey + "," + self.activeHaul +
-                                        ",'Codend','PartitionWeightType','not_subsampled')")
-                self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss')+ "," + query.lastQuery())
-                query = QtSql.QSqlQuery("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter, parameter_value)" +
-                                        " VALUES (" + self.ship+ "," + self.survey + "," + self.activeHaul +
-                                        ",'Codend','PartitionWeight','TBD')")
-                self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss')+ "," + query.lastQuery())
+            sql = ("SELECT event_parameter FROM event_data WHERE ship=" + self.ship +
+                    " AND survey=" + self.survey + " AND event_id=" + self.activeHaul +
+                    " AND event_parameter='PartitionWeightType'")
+            query = self.db.dbQuery(sql)
+            hasParam, query.first()
+            if not hasParam:
+                sql = ("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
+                        "parameter_value) VALUES (" + self.ship+ "," + self.survey + "," +
+                        self.activeHaul + ",'Codend','PartitionWeightType','not_subsampled')")
+                self.db.dbExec(sql)
+                sql = ("INSERT INTO event_data (ship, survey, event_id, partition, event_parameter," +
+                        "parameter_value) VALUES (" + self.ship+ "," + self.survey + "," +
+                        self.activeHaul + ",'Codend','PartitionWeight','TBD')")
+                self.db.dbExec(sql)
 
+        #  update the performance - if the user interacted with the combobox we will update
+        #  the event performance code in the database
         if self.perfBoxFlag:
-            perfCode=self.perfCode[self.perfBox.currentIndex()]
-            query = QtSql.QSqlQuery("UPDATE events SET performance_code="+perfCode+ " WHERE ship=" + self.ship+
+            perfCode = self.performanceCodes[self.perfBox.currentIndex()]
+            sql = ("UPDATE events SET performance_code="+perfCode+ " WHERE ship=" + self.ship+
                     " AND survey=" + self.survey+ " AND event_id = " + self.activeHaul)
-            self.backLogger.info(QDateTime.currentDateTime().toString('MMddyyyy hh:mm:ss')+ ","+query.lastQuery())
+            self.db.dbExec(sql)
 
 
     def setFlag(self):
+        '''setFlag is called when the user clicks the performance combobox. We assume
+        that if they interact with the perf combobox, then we update the event performance
+        code. This method just sets a flag to trigger the update when the haul data is
+        inserted/updated in the database.
+        '''
         self.perfBoxFlag = True
 
 
-    def reloadData(self):
-        # get existing data, populate lists, indicate selections
+    def getPerfList(self):
+        '''getPerfList is called both when the form is initialize and when the
+        "show full performance code list" checkbox is checked. It loads the
+        appropriate list ("short" and "long") and the trys to set the combobox
+        index to the current performance code. If, somehow, a performance code
+        is not set, it will load the long list and set the combobox index to
+        -1 to force the user to set a valid performance code.
+        '''
 
-        # set haul gear type
-        self.gearLabel.setText(self.gear)
+        #  initialize our bits
+        comboInd = -1
+        self.perfBox.clear()
+        self.performanceCodes = []
 
-        self.sciLabel.setText(self.scientist)
-        #repopulate Haul Info
-        for i in range(len(self.partitions)):
-            for j in range(len(self.parameters)):
-                query=QtSql.QSqlQuery("SELECT event_data.parameter_value FROM event_data WHERE event_data.ship="+
-                    self.ship+ " AND event_data.survey=" + self.survey+ " AND event_data.event_id=" + self.activeHaul+
-                    " AND event_data.partition='" + self.partitions[i]+ "' AND event_data.event_parameter = '" +
-                    self.parameters[j]+ "'")
-                if query.first():
-                    self.haulInfoBtns[j][i].setText(query.value(0).toString())
+        #  if the "long" list checkbox is NOT checked, first get the "short"
+        #  performance list and check if the curent perf code is in that list
+        if not self.perfCheckBox.isChecked():
+            sql = ("SELECT event_performance.performance_code, event_performance.description " +
+                    "FROM event_performance")
+            query = self.db.dbQuery(sql)
+            for perfCode, description in query:
+                self.perfBox.addItem(description)
+                self.performanceCodes.append(perfCode)
 
-
-    def getFullPerfList(self):
-        if self.perfCheckBox.checkState():
-            query=QtSql.QSqlQuery("SELECT event_performance.performance_code, event_performance.description FROM event_performance")
-            self.perfBox.setEnabled(True)
-            self.perfCode=[]
-            self.perfBox.clear()
-    #        self.typeBox.addItem('Select...')
-            while query.next(): # populate haul type list
-                self.perfBox.addItem(query.value(1).toString())
-                self.perfCode.append(query.value(0).toString())
-            self.perfBox.setCurrentIndex(-1)
-            self.perfBoxFlag=False
+        #  check if the current performance code is in the short list
+        if self.perfCode in self.performanceCodes:
+            #  it is, get the index so we can set the combobox
+            comboInd = self.performanceCodes.index(self.perfCode)
         else:
-            query=QtSql.QSqlQuery("SELECT event_performance.performance_code, event_performance.description FROM event_performance " +
-                    "INNER JOIN gear_options ON event_performance.performance_code = gear_options.performance_code WHERE " +
-                    "(((gear_options.gear)='"+self.gearBox.currentText()+"')) ORDER BY gear_options.perf_gui_order")
-            self.perfBox.setEnabled(True)
-            self.perfCode=[]
-            self.perfBox.clear()
-            while query.next(): # populate performance list
-                self.perfBox.addItem(query.value(1).toString())
-                self.perfCode.append(query.value(0).toString())
-            self.perfBox.setCurrentIndex(-1)
-            self.perfBoxFlag=False
+            #  it isn't, get the full list and check if it is in that
+            sql = ("SELECT event_performance.performance_code, event_performance.description " +
+                    "FROM event_performance INNER JOIN gear_options ON event_performance.performance_code" +
+                    "= gear_options.performance_code WHERE (((gear_options.gear)='" +
+                    self.gearBox.currentText() + "')) ORDER BY gear_options.perf_gui_order")
+            query = self.db.dbQuery(sql)
+            for perfCode, description in query:
+                self.perfBox.addItem(description)
+                self.performanceCodes.append(perfCode)
+
+            #  set the "full list" checkbox since we now loaded the full list
+            self.perfCheckBox.setCheckState(Qt.CheckState.Checked)
+
+            #  now see if the perf code is in the full list
+            if self.perfCode in self.performanceCodes:
+                comboInd = self.performanceCodes.index(self.perfCode)
+
+        #  set the combobox index to the current performance code
+        self.perfBox.setCurrentIndex(comboInd)
+
+        #  reset our perf code changed flag
+        self.perfBoxFlag = False
 
 
     def getComment(self):
-        keyDialog = keypad.KeyPad(self.comment,  self)
-        keyDialog.exec_()
+        '''getComment is called when the user clicks the "Comment" button on the form.
+        It displays the current comment text in the keyboard dialog allowing the user
+        to read and edit the comment using the on-screen touch keyboard.
+        '''
+
+        #  create the keyboard dialog and set the comment text
+        keyDialog = keypad.KeyPad(self.comment, self)
+
+        #  display it
+        keyDialog.exec()
+
+        #  if the user clicked "OK" when closing, update the database
         if keyDialog.okFlag:
-            self.comment=keyDialog.dispEdit.toPlainText()
-            query = QtSql.QSqlQuery("UPDATE events SET comments='"+self.comment+ "' WHERE ship=" + self.ship+
-                    " AND survey=" + self.survey+ " AND event_id = " + self.activeHaul)
-
-
-    def goExit(self):
-        self.close()
+            self.comment = keyDialog.dispEdit.toPlainText()
+            sql = ("UPDATE events SET comments='" + self.comment + "' WHERE ship=" +
+                    self.ship + " AND survey=" + self.survey+ " AND event_id = " +
+                    self.activeHaul)
+            self.db.dbExec(sql)
 
 
     def closeEvent(self, event):
+        '''closeEvent is called when the dialog is closed. It runs some checks
+        and if ok, writes the data to the database. If not, it asks the
+        user if they want to go back and complete the form or exit anyways
+        and write whatever data is available.
+        '''
 
         #  check if we're all filled in and write data to database
         self.writeHaul()
@@ -437,3 +618,76 @@ class CLAMSHaul(QDialog, ui_CLAMSHaul.Ui_clamsHaul):
             #  form is complete - we're done here
             event.accept()
             self.accept()
+
+        #  store the application size and position
+        self.appSettings.setValue('winposition', self.pos())
+        self.appSettings.setValue('winsize', self.size())
+
+
+    def checkWindowLocation(self, position, size, padding=[5, 25]):
+        '''
+        checkWindowLocation accepts a window position (QPoint) and size (QSize)
+        and returns a potentially new position and size if the window is currently
+        positioned off the screen.
+
+        This function uses QScreen.availableVirtualGeometry() which returns the full
+        available desktop space *not* including taskbar. For all single and "typical"
+        multi-monitor setups this should work reasonably well. But for multi-monitor
+        setups where the monitors may be different resolutions, have different
+        orientations or different scaling factors, the app may still fall partially
+        or totally offscreen. A more thorough check gets complicated, so hopefully
+        those cases are very rare.
+
+        If the user is holding the <shift> key while this method is run, the
+        application will be forced to the primary monitor.
+        '''
+
+        #  create a QRect that represents the app window
+        appRect = QRect(position, size)
+
+        #  check for the shift key which we use to force a move to the primary screem
+        resetPosition = QGuiApplication.queryKeyboardModifiers() == Qt.KeyboardModifier.ShiftModifier
+        if resetPosition:
+            position = QPoint(padding[0], padding[0])
+
+        #  get a reference to the primary system screen - If the app is off the screen, we
+        #  will restore it to the primary screen
+        primaryScreen = QGuiApplication.primaryScreen()
+
+        #  assume the new and old positions are the same
+        newPosition = position
+        newSize = size
+
+        #  Get the desktop geometry. We'll use availableVirtualGeometry to get the full
+        #  desktop rect but note that if the monitors are different resolutions or have
+        #  different scaling, some parts of this rect can still be offscreen.
+        screenGeometry = primaryScreen.availableVirtualGeometry()
+
+        #  if the app is partially or totally off screen or we're force resetting
+        if resetPosition or not screenGeometry.contains(appRect):
+
+            #  check if the upper left corner of the window is off the left side of the screen
+            if position.x() < screenGeometry.x():
+                newPosition.setX(screenGeometry.x() + padding[0])
+            #  check if the upper right is off the right side of the screen
+            if position.x() + size.width() >= screenGeometry.width():
+                p = screenGeometry.width() - size.width() - padding[0]
+                if p < padding[0]:
+                    p = padding[0]
+                newPosition.setX(p)
+            #  check if the top of the window is off the top/bottom of the screen
+            if position.y() < screenGeometry.y():
+                newPosition.setY(screenGeometry.y() + padding[0])
+            if position.y() + size.height() >= screenGeometry.height():
+                p = screenGeometry.height() - size.height() - padding[1]
+                if p < padding[0]:
+                    p = padding[0]
+                newPosition.setY(p)
+
+            #  now make sure the lower right (resize handle) is on the screen
+            if (newPosition.x() + newSize.width()) > screenGeometry.width():
+                newSize.setWidth(screenGeometry.width() - newPosition.x() - padding[0])
+            if (newPosition.y() + newSize.height()) > screenGeometry.height():
+                newSize.setHeight(screenGeometry.height() - newPosition.y() - padding[1])
+
+        return [newPosition, newSize]

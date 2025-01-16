@@ -14,12 +14,10 @@
 #  DOCUMENTATION; OR (2) TO PROVIDE TECHNICAL SUPPORT TO USERS.
 
 """
-    :module:: HaulWtSelDlg
+.. module:: CLAMSmain
 
-    :synopsis: HaulWtSelDlg is presented when the user clicks the
-               "Haul Weight Type" button for any partition in the
-               Haul form. This is where the user selects how they
-               will determine/enter the total weight of the catch.
+    :synopsis: CLAMSmain presents the main CLAMS application window.
+    It is the entry point for the CLAMS catch processing application.
 
 | Developed by:  Rick Towler   <rick.towler@noaa.gov>
 |                Kresimir Williams   <kresimir.williams@noaa.gov>
@@ -36,19 +34,25 @@
 |       Kresimir Williams   <kresimir.williams@noaa.gov>
 |       Mike Levine   <mike.levine@noaa.gov>
 |       Nathan Lauffenburger   <nathan.lauffenburger@noaa.gov>
-        Melina Shak <melina.shak@noaa.gov>
 """
 
-from PyQt6.QtWidgets import QDialog
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 import loadcelldialog
 import bindialog
 import numpad
 from ui import ui_HaulWtSelDlg
 
+
 class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
     def __init__(self,  parent=None):
         super(HaulWtSelDlg, self).__init__(parent)
+
+
         self.setupUi(self)
+
+
         self.ok=False
         self.settings=parent.settings
         self.errorSounds=parent.errorSounds
@@ -68,6 +72,7 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
         self.btn_3.clicked.connect(self.getGuess)
 
 
+
     def noSubsample(self):
 
         self.weightType = "not_subsampled"
@@ -84,7 +89,7 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
         '''
 
         BinDlg = bindialog.BinDialog(self)
-        if BinDlg.exec_():
+        if BinDlg.exec():
             self.weight = BinDlg.haulWT
             self.weightType = "bin_volumetric"
             self.ok=True
@@ -99,7 +104,7 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
         '''
 
         LCellDlg = loadcelldialog.LoadCellDialog(self)
-        if LCellDlg.exec_():
+        if LCellDlg.exec():
             self.weight = LCellDlg.haulWt
             self.weightType = "load_cell"
             self.ok=True
@@ -113,7 +118,7 @@ class HaulWtSelDlg(QDialog, ui_HaulWtSelDlg.Ui_haulwtselDlg):
             updated.
         '''
         self.numpad.msgLabel.setText("Enter your visual estimate" )
-        if self.numpad.exec_():
+        if self.numpad.exec():
             self.weight = self.numpad.value
             self.weightType = "visual_estimate"
             self.ok=True

@@ -93,7 +93,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.procBtn.clicked.connect(self.processHaul)
         self.utilitiesBtn.clicked.connect(self.utilities)
         self.adminBtn.clicked.connect(self.administration)
-        self.exitBtn.clicked.connect(self.goExit)
+        self.exitBtn.clicked.connect(self.close)
 
         #  set the base directory path - this is the full path to this application
         self.baseDir = functools.reduce(lambda l,r: l + os.path.sep + r,
@@ -184,7 +184,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
                     "CLAMS will operate with generic sounds.")
         else:
             #  these 4 sounds are used to indicate errors, information, questions and ???
-            errorSoundFiles = ['Error.wav', 'Ding.wav', 'Exclamation.wav', 'Notify.wav'] 
+            errorSoundFiles = ['Error.wav', 'Ding.wav', 'Exclamation.wav', 'Notify.wav']
             for sound in errorSoundFiles:
                 soundEffect = QSoundEffect()
                 soundEffect.setSource(QUrl.fromLocalFile(self.settings['SoundsDir'] + sound))
@@ -543,10 +543,6 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.setActiveSurvey()
 
 
-    def goExit(self):
-        self.close()
-
-
     def closeEvent(self, event=None):
         """
         Clean up when the CLAMS main window is closed.
@@ -555,6 +551,9 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         if self.db:
             self.db.dbClose()
 
+        #  store the application size and position
+        self.appSettings.setValue('winposition', self.pos())
+        self.appSettings.setValue('winsize', self.size())
 
 
     def checkPath(self, thisPath, default):
@@ -683,7 +682,7 @@ if __name__ == "__main__":
     settings['IconDir'] = initSettings.value('IconDir', './icons')
     settings['Database'] = initSettings.value('Database', 'Oracle')
     settings['GUI-ScrollBar-Width'] = initSettings.value('Database', 40)
-    
+
     #  create an instance of QApplication
     app = QApplication(sys.argv)
 

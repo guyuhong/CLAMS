@@ -42,7 +42,7 @@ from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 import Clamsbase2Functions
 from ui import ui_CLAMSProcess
-#import CLAMShaul
+import CLAMShaul
 #import CLAMScatch
 #import CLAMSspecimen
 #import CLAMSlength
@@ -83,8 +83,6 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         self.black = QPalette()
         self.black.setColor(QPalette.ColorRole.ButtonText,QColor(0, 0, 0))
 
-
-
         # set up button colors
         self.haulBtn.setPalette(self.black)
         self.catchBtn.setPalette(self.black)
@@ -99,18 +97,19 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         self.lengthBtn.clicked.connect(self.getLength)
         self.fixSpeciesBtn.clicked.connect(self.goFixSpecies)
         self.editCodendStateBtn.clicked.connect(self.editCodendState)
-        self.doneBtn.clicked.connect(self.goExit)
+        self.doneBtn.clicked.connect(self.close)
 
-        #  set up the window position
-#        screen = QDesktopWidget().screenGeometry()
-#        window = self.geometry()
-#        self.setGeometry((screen.width() - window.width()) / 2,
-#                         (screen.height() - window.height()) / 2,
-#                         window.width(), window.height())
-#        self.setMinimumSize(window.width(), window.height())
-#        self.setMaximumSize(window.width(), window.height())
-#        self.windowAnchor = ((screen.height() - window.height()) / 2, window.height())
-#        self.settings.update({"WindowAnchor":window.y() + window.height()})
+        #  restore the application state
+        self.appSettings = QSettings('CLAMS', 'ProcessForm')
+        size = self.appSettings.value('winsize', QSize(950,656))
+        position = self.appSettings.value('winposition', QPoint(10,10))
+
+        #  check the current position and size to make sure the app is on the screen
+        position, size = self.checkWindowLocation(position, size)
+
+        #  now move and resize the window
+        self.move(position)
+        self.resize(size)
 
         #  set the event number
         self.haulLabel.setText(self.activeHaul)
@@ -282,16 +281,16 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
 
         #  create an instance of the sensor monitor
         self.serMonitor = SensorMonitor.SensorMonitor()
-        
+
         #  connect the SerialDevicesStopped signal which tells us
         #  when all acquisition threads have stopped. We make sure
         #  we don't exit before all threads have stopped.
         self.serMonitor.SerialDevicesStopped.connect(self.devicesClosed)
-        
+
         #  connect the SerialError signal to inform the user of any
         #  sensor errors.
         self.serMonitor.SerialError.connect(self.serialError)
-        
+
         #  query the devices attached to this station
         sql = ("SELECT MEASUREMENT_SETUP.DEVICE_ID, DEVICES.DEVICE_NAME " +
                 "FROM MEASUREMENT_SETUP INNER JOIN DEVICES ON " +
@@ -356,16 +355,16 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  are received. Those messages are optionally parsed and then SensorMonitor
         #  emits a signal with the parsed data.
         self.serMonitor.startMonitoring()
-        
-        #  If there are any errors opening ports, SensorMonitor will emit the 
+
+        #  If there are any errors opening ports, SensorMonitor will emit the
         #  serialError signal for each device with an issue
 
 
     @pyqtSlot(str, object)
     def serialError(self, deviceID, obj):
-        
+
         #  There was an issue with a device
-        
+
         #  first get the human readable device name
         sql = ("SELECT device_name FROM devices" +
                 " WHERE device_id=" + deviceID)
@@ -378,7 +377,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  display a warning dialog
         QMessageBox.warning(self, "Serial Port Error", "<font size = 14>" +
                 errText + ". This device will be not be enabled.")
-        
+
 
     def editCodendState(self):
 
@@ -407,7 +406,7 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                     btn.setChecked(True)
             #  now display the codendstate dialog
             self.codendstate.exec()
-            
+
             #  update the state based on the dialog selection
             newStatus = self.codendstate.state_value
             if newStatus != currentCodendState:
@@ -428,8 +427,8 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         self.haulBtn.setPalette(self.blue)
 
         #  display the haul selection dialog
-        #haulWindow = CLAMShaul.CLAMSHaul(self)
-        #haulWindow.exec()
+        haulWindow = CLAMShaul.CLAMSHaul(self)
+        haulWindow.exec()
 
         #  set the button back to black
         self.haulBtn.setPalette(self.black)
@@ -615,15 +614,19 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
         #  in the SerialDevicesStopped event handler devicesClosed below.
         self.clEventObj = event
 
+        #  store the application size and position
+        self.appSettings.setValue('winposition', self.pos())
+        self.appSettings.setValue('winsize', self.size())
+
 
     def devicesClosed(self):
         '''devicesClosed is called when the SensorMonitor emits the
         SerialDevicesStopped signal which lets us know all acquisition
-        threads have stopped. 
-        
+        threads have stopped.
+
         Since we have done all of the other shutdown tasks, we simply
         call the close event's accept method.
-        
+
         '''
         if self.clEventObj:
             self.clEventObj.accept()
@@ -940,3 +943,71 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
                             self.returnFlag=True
                             return
 
+
+    def checkWindowLocation(self, position, size, padding=[5, 25]):
+        '''
+        checkWindowLocation accepts a window position (QPoint) and size (QSize)
+        and returns a potentially new position and size if the window is currently
+        positioned off the screen.
+
+        This function uses QScreen.availableVirtualGeometry() which returns the full
+        available desktop space *not* including taskbar. For all single and "typical"
+        multi-monitor setups this should work reasonably well. But for multi-monitor
+        setups where the monitors may be different resolutions, have different
+        orientations or different scaling factors, the app may still fall partially
+        or totally offscreen. A more thorough check gets complicated, so hopefully
+        those cases are very rare.
+
+        If the user is holding the <shift> key while this method is run, the
+        application will be forced to the primary monitor.
+        '''
+
+        #  create a QRect that represents the app window
+        appRect = QRect(position, size)
+
+        #  check for the shift key which we use to force a move to the primary screem
+        resetPosition = QGuiApplication.queryKeyboardModifiers() == Qt.KeyboardModifier.ShiftModifier
+        if resetPosition:
+            position = QPoint(padding[0], padding[0])
+
+        #  get a reference to the primary system screen - If the app is off the screen, we
+        #  will restore it to the primary screen
+        primaryScreen = QGuiApplication.primaryScreen()
+
+        #  assume the new and old positions are the same
+        newPosition = position
+        newSize = size
+
+        #  Get the desktop geometry. We'll use availableVirtualGeometry to get the full
+        #  desktop rect but note that if the monitors are different resolutions or have
+        #  different scaling, some parts of this rect can still be offscreen.
+        screenGeometry = primaryScreen.availableVirtualGeometry()
+
+        #  if the app is partially or totally off screen or we're force resetting
+        if resetPosition or not screenGeometry.contains(appRect):
+
+            #  check if the upper left corner of the window is off the left side of the screen
+            if position.x() < screenGeometry.x():
+                newPosition.setX(screenGeometry.x() + padding[0])
+            #  check if the upper right is off the right side of the screen
+            if position.x() + size.width() >= screenGeometry.width():
+                p = screenGeometry.width() - size.width() - padding[0]
+                if p < padding[0]:
+                    p = padding[0]
+                newPosition.setX(p)
+            #  check if the top of the window is off the top/bottom of the screen
+            if position.y() < screenGeometry.y():
+                newPosition.setY(screenGeometry.y() + padding[0])
+            if position.y() + size.height() >= screenGeometry.height():
+                p = screenGeometry.height() - size.height() - padding[1]
+                if p < padding[0]:
+                    p = padding[0]
+                newPosition.setY(p)
+
+            #  now make sure the lower right (resize handle) is on the screen
+            if (newPosition.x() + newSize.width()) > screenGeometry.width():
+                newSize.setWidth(screenGeometry.width() - newPosition.x() - padding[0])
+            if (newPosition.y() + newSize.height()) > screenGeometry.height():
+                newSize.setHeight(screenGeometry.height() - newPosition.y() - padding[1])
+
+        return [newPosition, newSize]
