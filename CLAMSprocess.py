@@ -46,7 +46,7 @@ import CLAMShaul
 #import CLAMScatch
 #import CLAMSspecimen
 #import CLAMSlength
-#import CLAMSSpeciesFix
+import CLAMSSpeciesFix
 from acquisition.SensorMonitor import SensorMonitor
 import messagedlg
 import listseldialog
@@ -535,8 +535,8 @@ class CLAMSProcess(QDialog, ui_CLAMSProcess.Ui_clamsProcess):
             return
 
         #  display the SpeciesFix dialog
-        #spcFixWindow = CLAMSSpeciesFix.CLAMSSpeciesFix(self)
-        #spcFixWindow.exec()
+        spcFixWindow = CLAMSSpeciesFix.CLAMSSpeciesFix(self)
+        spcFixWindow.exec()
 
 
     def goExit(self):

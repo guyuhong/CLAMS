@@ -15,7 +15,7 @@ class CLAMSSpeciesFix(QDialog, ui_CLAMSSpeciesFix.Ui_clamsSpeciesFix):
     def __init__(self, parent=None):
         super(CLAMSSpeciesFix, self).__init__(parent)
         self.setupUi(self)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        #self.setAttribute(Qt.WA_DeleteOnClose)
         self.db=parent.db
         if not self.db.isOpen():
             self.db.open()
