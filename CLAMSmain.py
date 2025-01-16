@@ -66,6 +66,7 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
 
         #  define version
         self.version = "V3.0"
+        self.titleTextColor = 'rgb(255,255,255)'
         self.testing = False
 
         #  set database credentials
@@ -103,6 +104,16 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
             self.setWindowIcon(QIcon(self.baseDir + os.sep + 'icons/giant_clam.png'))
         except:
             pass
+
+        #  set the version, survey and ship in the main window
+        labelSheet = 'QLabel{color: ' + self.titleTextColor + ';}\n'
+        self.titleLabel.setStyleSheet(labelSheet)
+        self.subtitleLabel.setStyleSheet(labelSheet)
+        self.shipLabel.setStyleSheet(labelSheet)
+        self.surveyLabel.setStyleSheet(labelSheet)
+        self.schemaLabel.setStyleSheet(labelSheet)
+        self.titleLabel.setText("CLAMS " + self.version )
+        self.subtitleLabel.setText("Catch Logger for Acoustic Midwater Surveys")
 
         #  create a single-shot timer that runs the application initialization code
         #  this allows the application to complete the main window init method before
@@ -374,17 +385,13 @@ class CLAMSMain(QMainWindow, ui_CLAMSMain.Ui_clamsMain):
         self.ship, = query.first()
         self.settings['ActiveShip'] = self.ship
 
-        #  set the version, survey and ship in the main window
-        self.titleLabel.setText("<font color=white>CLAMS &nbsp; " + self.version + " </font>")
-        self.subtitleLabel.setText("<font color=white>Catch Logger for Acoustic Midwater Surveys</font>")
-
         #  update the ship name in the GUI
         sql = "SELECT name FROM " + self.schema + ".ships WHERE ship=" + self.ship
         query = self.db.dbQuery(sql)
         self.shipName, = query.first()
-        self.surveyLabel.setText("<font color=white>Survey: " + self.survey + "</font>")
-        self.shipLabel.setText("<font color=white>Ship: " + self.shipName + "</font>")
-        self.schemaLabel.setText("<font color=white>Schema: " + self.schema + "</font>")
+        self.surveyLabel.setText("Survey: " + self.survey)
+        self.shipLabel.setText("Ship: " + self.shipName)
+        self.schemaLabel.setText("Schema: " + self.schema)
 
 
     def launchEvent(self):

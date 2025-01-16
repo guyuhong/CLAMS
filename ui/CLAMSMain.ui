@@ -184,6 +184,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="procBtn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="minimumSize">
            <size>
             <width>250</width>
@@ -227,6 +230,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="adminBtn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="minimumSize">
            <size>
             <width>250</width>

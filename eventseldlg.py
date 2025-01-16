@@ -63,8 +63,7 @@ class EventSelDlg(QDialog, ui_EventSelDlg.Ui_eventselDlg):
         self.eventTable.setRowCount(0)
 
         #  set up the table
-        self.eventTable.setSizeAdjustPolicy(
-                QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.eventTable.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.eventTable.verticalHeader().setVisible(False)
         self.eventTable.scrollToBottom()
 
