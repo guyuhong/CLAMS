@@ -113,8 +113,9 @@ class SelectActiveSurveyDlg(QDialog, ui_SelectActiveSurveyDlg.Ui_selectactivesur
         #  make sure that all stations are closed
         sql = ("SELECT hostname FROM workstations WHERE lower(status)='open' and active=1")
         query = self.db.dbQuery(sql)
+        openHosts, = query.first()
 
-        if query.first():
+        if openHosts:
             #  one or more CLAMS workstations are open - do not update active ship/survey
             QMessageBox.critical(self, "ERROR", "<font size = 12>One or more CLAMS workstations " +
                     "are open. The active survey cannot be changed when workstations are open.")
@@ -129,40 +130,40 @@ class SelectActiveSurveyDlg(QDialog, ui_SelectActiveSurveyDlg.Ui_selectactivesur
                 #  update the ActiveSurvey setting
                 sql = ("UPDATE application_configuration SET PARAMETER_VALUE = '" +
                         self.surveyData[selectedIndex] + "' WHERE PARAMETER='ActiveSurvey'")
-                self.db.dbexec(sql)
+                self.db.dbExec(sql)
 
                 #  update the ActiveShip setting
-                sql ("UPDATE application_configuration SET PARAMETER_VALUE = " +
+                sql = ("UPDATE application_configuration SET PARAMETER_VALUE = " +
                         self.shipNumber + " WHERE PARAMETER='ActiveShip'")
-                self.db.dbexec(sql)
+                self.db.dbExec(sql)
 
                 #  zero out the active haul
                 sql = ("UPDATE application_configuration SET PARAMETER_VALUE ='0' " +
                               " WHERE PARAMETER='ActiveEvent'")
-                self.db.dbexec(sql)
+                self.db.dbExec(sql)
 
                 #  reset the sequences for the new ship/survey combo. This sets the sequence values
                 #  to whatever is appropriate for this ship/survey.
                 sql = ("CALL reset_sequence_by_survey('baskets', 'basket_id'," +
                         self.shipNumber + "," + self.surveyData[selectedIndex] + ")")
-                self.db.dbexec(sql)
+                self.db.dbExec(sql)
 
                 sql = ("CALL reset_sequence_by_survey('samples', 'sample_id'," +
                         self.shipNumber + "," + self.surveyData[selectedIndex] + ")")
-                self.db.dbexec(sql)
+                self.db.dbExec(sql)
 
                 sql = ("CALL reset_sequence_by_survey('specimen', 'specimen_id'," +
                         self.shipNumber + "," + self.surveyData[selectedIndex] + ")")
-                self.db.dbexec(sql)
+                self.db.dbExec(sql)
 
                 #  reset the protected spp event ID sequence - new in 2019
                 sql = ("CALL reset_sequence_by_survey('protected_spp_events', 'event_id'," +
                         self.shipNumber + "," + self.surveyData[selectedIndex] + ")")
-                self.db.dbexec(sql)
+                self.db.dbExec(sql)
 
                 self.db.commit()
 
-            except exception as e:
+            except Exception as e:
                 #  there was an error updating the data
                 self.db.rollback()
                 QMessageBox.critical(self, "ERROR", "<font size = 12>Unable to set the active " +

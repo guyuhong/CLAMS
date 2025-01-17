@@ -81,7 +81,7 @@ class EventSelDlg(QDialog, ui_EventSelDlg.Ui_eventselDlg):
                     "FROM gear) b ON a.gear = b.gear JOIN (SELECT gear_type, " +
                     "retains_catch from gear_types) c ON b.gear_type = c.gear_type " +
                     "WHERE a.ship = " + parent.ship + " AND a.survey= " + parent.survey +
-                    " AND c.retains_catch>1  ORDER BY event_id ASC")
+                    " AND c.retains_catch > 0  ORDER BY event_id ASC")
         else:
             sql = ("SELECT a.event_id, a.gear FROM (SELECT event_id, gear, " +
                     "ship, survey FROM events) a JOIN (SELECT gear, gear_type " +
@@ -102,18 +102,17 @@ class EventSelDlg(QDialog, ui_EventSelDlg.Ui_eventselDlg):
                         " AND event_id=" + event_id + " AND ship=" + parent.ship +
                         " AND survey=" + parent.survey)
                 query = self.db.dbQuery(sql)
-                hbTime = query.first()
+                hbTime, = query.first()
 
                 if hbTime:
                     #  event is closed - insert the gear in black text
                     self.eventTable.setItem(rowCount, 1, QTableWidgetItem(gear))
                     self.eventTable.setItem(rowCount, 2, QTableWidgetItem(hbTime))
-
                 else:
                     #  event is not closed - insert the gear text with a pink background
                     item = QTableWidgetItem(gear)
                     brush = QBrush(QColor(250, 200, 200))
-                    brush.setStyle(Qt.SolidPattern)
+                    brush.setStyle(Qt.BrushStyle.SolidPattern)
                     item.setBackground(brush)
                     self.eventTable.setItem(rowCount, 1, item)
 
@@ -125,7 +124,7 @@ class EventSelDlg(QDialog, ui_EventSelDlg.Ui_eventselDlg):
                         " AND event_id=" + event_id + " AND ship=" + parent.ship +
                         " AND survey=" + parent.survey)
                 query = self.db.dbQuery(sql)
-                evTime = query.first()
+                evTime, = query.first()
 
                 if evTime:
                     #  event is closed - insert the gear in black text
@@ -135,7 +134,7 @@ class EventSelDlg(QDialog, ui_EventSelDlg.Ui_eventselDlg):
                     #  event is not closed - insert the gear text with a pink background
                     item = QTableWidgetItem(evTime)
                     brush = QBrush(QColor(250, 200, 200))
-                    brush.setStyle(Qt.SolidPattern)
+                    brush.setStyle(Qt.BrushStyle.SolidPattern)
                     item.setBackground(brush)
                     self.eventTable.setItem(rowCount, 1, item)
 
@@ -145,6 +144,13 @@ class EventSelDlg(QDialog, ui_EventSelDlg.Ui_eventselDlg):
         #  resize the columns and scroll to the bottom to show the most recent events
         self.eventTable.resizeColumnsToContents()
         self.eventTable.scrollToBottom()
+        self.eventTable.setRowCount(rowCount)
+
+        #  stuff I tried to get the scrollbar to appear but seems to have no effect
+        self.eventTable.verticalScrollBar().setSingleStep(1)
+        self.eventTable.verticalScrollBar().setPageStep(10)
+        self.eventTable.verticalScrollBar().setVisible(True)
+        self.eventTable.verticalScrollBar().setMinimumWidth(50)
 
 
     def getNewEvent(self):
