@@ -18,6 +18,12 @@
     <layout class="QGridLayout" name="gridLayout">
      <item row="2" column="0">
       <widget class="QPushButton" name="delBtn">
+       <property name="minimumSize">
+        <size>
+         <width>165</width>
+         <height>35</height>
+        </size>
+       </property>
        <property name="font">
         <font>
          <pointsize>14</pointsize>
@@ -42,6 +48,12 @@
      </item>
      <item row="2" column="2">
       <widget class="QPushButton" name="okBtn">
+       <property name="minimumSize">
+        <size>
+         <width>165</width>
+         <height>35</height>
+        </size>
+       </property>
        <property name="font">
         <font>
          <pointsize>14</pointsize>
@@ -54,6 +66,12 @@
      </item>
      <item row="2" column="1">
       <widget class="QPushButton" name="cancelBtn">
+       <property name="minimumSize">
+        <size>
+         <width>165</width>
+         <height>35</height>
+        </size>
+       </property>
        <property name="font">
         <font>
          <pointsize>14</pointsize>

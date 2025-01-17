@@ -12,13 +12,13 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(332, 400)
+        Dialog.resize(356, 400)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         self.pushButton_2 = QtWidgets.QPushButton(parent=Dialog)
-        self.pushButton_2.setMinimumSize(QtCore.QSize(165, 0))
+        self.pushButton_2.setMinimumSize(QtCore.QSize(165, 35))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.pushButton_2.setFont(font)

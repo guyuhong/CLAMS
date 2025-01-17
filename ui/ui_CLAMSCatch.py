@@ -13,7 +13,7 @@ class Ui_clamsCatch(object):
     def setupUi(self, clamsCatch):
         clamsCatch.setObjectName("clamsCatch")
         clamsCatch.setWindowModality(QtCore.Qt.WindowModality.NonModal)
-        clamsCatch.resize(1087, 681)
+        clamsCatch.resize(1086, 645)
         clamsCatch.setMinimumSize(QtCore.QSize(165, 0))
         self.verticalLayout = QtWidgets.QVBoxLayout(clamsCatch)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -108,6 +108,7 @@ class Ui_clamsCatch(object):
         self.label_7.setObjectName("label_7")
         self.gridLayout.addWidget(self.label_7, 3, 4, 1, 1)
         self.sciLabel = QtWidgets.QLabel(parent=clamsCatch)
+        self.sciLabel.setMinimumSize(QtCore.QSize(165, 35))
         font = QtGui.QFont()
         font.setPointSize(20)
         font.setBold(True)
