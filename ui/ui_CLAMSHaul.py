@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'C:\Users\Melina.Shak\Documents\CLAMS\ui\CLAMSHaul.ui'
+# Form implementation generated from reading ui file 'C:\Users\rick.towler\Work\noaa-afsc-mace\CLAMS\ui\CLAMSHaul.ui'
 #
 # Created by: PyQt6 UI code generator 6.8.0
 #
@@ -13,7 +13,7 @@ class Ui_clamsHaul(object):
     def setupUi(self, clamsHaul):
         clamsHaul.setObjectName("clamsHaul")
         clamsHaul.setEnabled(True)
-        clamsHaul.resize(950, 665)
+        clamsHaul.resize(907, 665)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
 # Form implementation generated from reading ui file 'C:\Users\rick.towler\Work\noaa-afsc-mace\CLAMS\ui\LoadCellDialog.ui'
-=======
-# Form implementation generated from reading ui file 'C:\Users\Melina.Shak\Documents\CLAMS\ui\LoadCellDialog.ui'
->>>>>>> Stashed changes
 #
 # Created by: PyQt6 UI code generator 6.8.0
 #
@@ -56,11 +52,7 @@ class Ui_loadcellDialog(object):
         self.tareBtn.setObjectName("tareBtn")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.tareBtn)
         self.grossBtn = QtWidgets.QPushButton(parent=loadcellDialog)
-<<<<<<< Updated upstream
         self.grossBtn.setEnabled(True)
-=======
-        self.grossBtn.setEnabled(False)
->>>>>>> Stashed changes
         font = QtGui.QFont()
         font.setFamily("Arial Black")
         font.setPointSize(16)
